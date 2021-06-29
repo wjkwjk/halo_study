@@ -1,14 +1,17 @@
 package com.wjk.halo.service;
 
-import com.sun.istack.internal.NotNull;
 import com.wjk.halo.model.entity.Option;
 import com.wjk.halo.model.properties.PropertyEnum;
 import com.wjk.halo.service.base.CrudService;
 import org.springframework.lang.NonNull;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Map;
 import java.util.Optional;
 
 public interface OptionService extends CrudService<Option, Integer> {
+
+    String OPTIONS_KEY = "options";
 
     /**
      *
@@ -18,10 +21,16 @@ public interface OptionService extends CrudService<Option, Integer> {
      * @param <T>
      * @return
      */
-    <T> T getByPropertyOrDefault(@NotNull PropertyEnum property, @NotNull Class<T> propertyType, T defaultValue);
+    <T> T getByPropertyOrDefault(@NonNull PropertyEnum property, @NonNull Class<T> propertyType, T defaultValue);
 
     <T> Optional<T> getByProperty(@NonNull PropertyEnum property, @NonNull Class<T> propertyType);
 
     Optional<Object> getByProperty(@NonNull PropertyEnum property);
 
+    @NonNull
+    Optional<Object> getByKey(@NonNull String key);
+
+    @NonNull
+    @Transactional
+    Map<String, Object> listOptions();
 }

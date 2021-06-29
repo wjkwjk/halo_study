@@ -4,6 +4,7 @@ import com.wjk.halo.repository.base.BaseRepository;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.List;
 
 public abstract class AbstractCrudService<DOMAIN, ID> implements CrudService<DOMAIN, ID> {
 
@@ -18,6 +19,11 @@ public abstract class AbstractCrudService<DOMAIN, ID> implements CrudService<DOM
 
     private Type fetchType(int index){
         return ((ParameterizedType)this.getClass().getGenericSuperclass()).getActualTypeArguments()[index];
+    }
+
+    @Override
+    public List<DOMAIN> listAll(){
+        return repository.findAll();
     }
 
 }

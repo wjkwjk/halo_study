@@ -20,4 +20,14 @@ public enum PrimaryProperties implements PropertyEnum{
     public String getValue() {
         return value;
     }
+
+    @Override
+    public Class<?> getType() {
+        return type;
+    }
+
+    @Override
+    public String defaultValue() {
+        return defaultValue;
+    }
 }
