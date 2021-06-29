@@ -19,6 +19,8 @@ public class OptionServiceImpl extends AbstractCrudService<Option, Integer> impl
     private final OptionRepository optionRepository;
     private final AbstractStringCacheStore cacheStore;
 
+
+    //抽象类对象作为方法参数有问题？
     public OptionServiceImpl(OptionRepository optionRepository,AbstractStringCacheStore cacheStore) {
         super(optionRepository);
         this.optionRepository = optionRepository;
