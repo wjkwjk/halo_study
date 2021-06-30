@@ -23,6 +23,7 @@ public abstract class AbstractStringCacheStore extends AbstractCacheStore<String
         }
     }
 
+    //key:"options" value:{"is_installed":false}(HashMap类型)
     public <T> void putAny(String key, T value){
         try {
             put(key, JsonUtils.objectToJson(value));

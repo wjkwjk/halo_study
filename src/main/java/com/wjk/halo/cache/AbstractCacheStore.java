@@ -1,5 +1,6 @@
 package com.wjk.halo.cache;
 
+import com.wjk.halo.config.properties.HaloProperties;
 import com.wjk.halo.utils.DateUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.lang.NonNull;
@@ -11,6 +12,8 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public abstract class AbstractCacheStore<K,V> implements CacheStore<K,V> {
 
+    protected HaloProperties haloProperties;
+
     //将键独立开来，将值，超时时间，时间单位包装成一个整体作为值，使用CacheWrapper进行包装
     @Override
     public void put(K key, V value, long timeout, TimeUnit timeUnit) {
@@ -21,6 +24,7 @@ public abstract class AbstractCacheStore<K,V> implements CacheStore<K,V> {
     abstract void putInternal(@NonNull K key, @NonNull CacheWrapper<V> cacheWrapper);
 
     //没有给出超时时间
+    //  key:"options", value:"{is_installed:false}"
     @Override
     public void put(K key, V value){
         putInternal(key, buildCacheWrapper(value, 0, null));

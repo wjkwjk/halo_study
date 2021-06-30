@@ -39,13 +39,17 @@ public class OptionServiceImpl extends AbstractCrudService<Option, Integer> impl
         return getByProperty(property, propertyType).orElse(defaultValue);
     }
 
+    //获取结果并将结果转化为指定的类型
     @Override
     public <T> Optional<T> getByProperty(PropertyEnum property, Class<T> propertyType) {
         return getByProperty(property).map(propertyValue->PropertyEnum.convertTo(propertyValue.toString(), propertyType));
     }
 
+
     @Override
     public Optional<Object> getByProperty(PropertyEnum property) {
+        //property.getValue()结果为 "is_installed"
+        //返回：Optional[false]
         return getByKey(property.getValue());
     }
 
@@ -89,6 +93,7 @@ public class OptionServiceImpl extends AbstractCrudService<Option, Integer> impl
                     });
             cacheStore.putAny(OPTIONS_KEY, result);
 
+            //返回HashMap类型的{"is_installed":false}
             return result;
         });
     }
