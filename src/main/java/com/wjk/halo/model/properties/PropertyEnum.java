@@ -65,6 +65,7 @@ public interface PropertyEnum extends ValueEnum<String> {
 
     }
 
+    //返回美剧类型type
     @Nullable
     static <T extends Enum<T>> T convertToEnum(@NonNull String value, @NonNull Class<T> type){
         try {
@@ -74,11 +75,11 @@ public interface PropertyEnum extends ValueEnum<String> {
         }
     }
 
+    //以枚举中的value作为键，以枚举本身作为值
     static Map<String, PropertyEnum> getValuePropertyEnumMap(){
         List<Class<? extends PropertyEnum>> propertyEnumClasses = new LinkedList<>();
 
         propertyEnumClasses.add(PrimaryProperties.class);
-
 
         Map<String, PropertyEnum> result = new HashMap<>();
 

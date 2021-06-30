@@ -11,6 +11,8 @@ import java.util.stream.Collectors;
 public class ServiceUtils {
     private ServiceUtils(){}
 
+
+    //从数据库查询结果中得到每行数据的key的集合
     @NonNull
     public static <ID, T> Set<ID> fetchProperty(final Collection<T> datas, Function<T, ID> mappingFunction){
         return CollectionUtils.isEmpty(datas) ?

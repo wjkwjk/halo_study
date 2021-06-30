@@ -25,7 +25,7 @@ public class OptionServiceImpl extends AbstractCrudService<Option, Integer> impl
     private final Map<String, PropertyEnum> propertyEnumMap;
 
     //抽象类对象作为方法参数有问题？
-    public OptionServiceImpl(OptionRepository optionRepository) {
+    public OptionServiceImpl(OptionRepository optionRepository, AbstractStringCacheStore cacheStore) {
         super(optionRepository);
         this.optionRepository = optionRepository;
         this.cacheStore = cacheStore;
@@ -54,11 +54,12 @@ public class OptionServiceImpl extends AbstractCrudService<Option, Integer> impl
         return Optional.ofNullable(listOptions().get(key));
     }
 
+    //根据key先从缓存中获取数据
     @Override
     public Map<String, Object> listOptions(){
         return cacheStore.getAny(OPTIONS_KEY, Map.class).orElseGet(()->{
             List<Option> options = listAll();
-
+            //得到所有key集合
             Set<String> keys = ServiceUtils.fetchProperty(options, Option::getKey);
 
             Map<String, Object> userDefinedOptionMap = ServiceUtils.convertToMap(options, Option::getKey, option -> {

@@ -12,8 +12,11 @@ public class InMemoryCacheStore extends AbstractStringCacheStore{
 
     private final Timer timer;
 
+    private final static long PERIOD = 60 * 1000;
+
     public InMemoryCacheStore(){
         timer = new Timer();
+        timer.scheduleAtFixedRate(new CacheExpiryCleaner(), 0, PERIOD);
     }
 
     //使用ConcurrentHashMap保存身份信息
@@ -37,4 +40,17 @@ public class InMemoryCacheStore extends AbstractStringCacheStore{
         CACHE_CONTAINER.remove(key);
         log.debug("Removed key:[{}]", key);
     }
+
+    private class CacheExpiryCleaner extends TimerTask {
+
+        @Override
+        public void run() {
+            CACHE_CONTAINER.keySet().forEach(key -> {
+                if (!InMemoryCacheStore.this.get(key).isPresent()) {
+                    log.debug("Deleted the cache: [{}] for expiration", key);
+                }
+            });
+        }
+    }
+
 }

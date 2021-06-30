@@ -13,10 +13,12 @@ public abstract class AbstractCrudService<DOMAIN, ID> implements CrudService<DOM
 
     protected AbstractCrudService(BaseRepository<DOMAIN, ID> repository){
         this.repository = repository;
+        //返回CrudService中的DOMAIN参数
         Class<DOMAIN> domainClass = (Class<DOMAIN>) fetchType(0);
         domainName = domainClass.getSimpleName();
     }
 
+    //返回当前类的直接父类中的第index个参数，第一个参数即指DOMAIN，第二个参数即指ID
     private Type fetchType(int index){
         return ((ParameterizedType)this.getClass().getGenericSuperclass()).getActualTypeArguments()[index];
     }
