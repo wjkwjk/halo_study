@@ -50,13 +50,13 @@ public class JsonUtils {
     public static <T> T jsonToObject(@NonNull String json, @NonNull Class<T> type, @NonNull ObjectMapper objectMapper)throws IOException{
         return objectMapper.readValue(json, type);
     }
-
+    //source为HashMap类型，包含所有从数据中查询到的键值对，目的是将source数据变为Json类型
     @NonNull
     public static String objectToJson(@NonNull Object source) throws JsonProcessingException{
         return objectToJson(source, DEFAULT_JSON_MAPPER);
     }
 
-    //将对象序列化到字符串
+    //将source序列化到json类型
     @NonNull
     public static String objectToJson(@NonNull Object source, @NonNull ObjectMapper objectMapper) throws JsonProcessingException{
         return objectMapper.writeValueAsString(source);

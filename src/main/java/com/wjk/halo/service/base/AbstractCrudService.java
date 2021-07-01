@@ -1,11 +1,16 @@
 package com.wjk.halo.service.base;
 
 import com.wjk.halo.repository.base.BaseRepository;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.List;
 
+@Slf4j
 public abstract class AbstractCrudService<DOMAIN, ID> implements CrudService<DOMAIN, ID> {
 
     private final String domainName;
@@ -28,4 +33,18 @@ public abstract class AbstractCrudService<DOMAIN, ID> implements CrudService<DOM
         return repository.findAll();
     }
 
+    @Override
+    public List<DOMAIN> listAll(Sort sort) {
+        return repository.findAll(sort);
+    }
+
+    @Override
+    public Page<DOMAIN> listAll(Pageable pageable) {
+        return repository.findAll(pageable);
+    }
+
+    @Override
+    public DOMAIN create(DOMAIN domain) {
+        return repository.save(domain);
+    }
 }

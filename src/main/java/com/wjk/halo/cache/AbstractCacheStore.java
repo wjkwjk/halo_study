@@ -24,13 +24,13 @@ public abstract class AbstractCacheStore<K,V> implements CacheStore<K,V> {
     abstract void putInternal(@NonNull K key, @NonNull CacheWrapper<V> cacheWrapper);
 
     //没有给出超时时间
-    //  key:"options", value:"{is_installed:false}"
+    //  key:"options", value:数据库中查询得到的所有key-value对，并且已经转变为json类型了
     @Override
     public void put(K key, V value){
         putInternal(key, buildCacheWrapper(value, 0, null));
     }
 
-    //将值，超时时间，时间单位包装成一个CacheWrapper对象
+    //将值，超时时间，时间单位包装成一个CacheWrapper对象，值代表数据库查询得到的所有key-value对，都属于data
     @NonNull
     private CacheWrapper<V> buildCacheWrapper(@NonNull V value, long timeout, @NonNull TimeUnit timeUnit){
         Date now = DateUtils.now();
@@ -52,6 +52,11 @@ public abstract class AbstractCacheStore<K,V> implements CacheStore<K,V> {
     @NonNull
     abstract Optional<CacheWrapper<V>> getInternal(@NonNull K key);
 
+    /**
+     *
+     * @param key   "options"(String类型)
+     * @return
+     */
     //根据键取值，并且进行过期判断，判断则删除键，否则返回值
     @Override
     public Optional<V> get(K key){

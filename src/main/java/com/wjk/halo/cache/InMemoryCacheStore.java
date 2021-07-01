@@ -29,6 +29,11 @@ public class InMemoryCacheStore extends AbstractStringCacheStore{
         log.debug("Put [{}] cache result: [{}], original cache wrapper: [{}]", key, putCacheWrapper, cacheWrapper);
     }
 
+    /**
+     *
+     * @param key   "options"(String类型)
+     * @return  返回结果应为CacheWrapper类型对象，但是由于此次不存在key=options，因此返回null
+     */
     //根据键从ConcurrentHashMap取值
     @Override
     Optional<CacheWrapper<String>> getInternal(String key) {

@@ -4,6 +4,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.lang.NonNull;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -17,5 +18,9 @@ public interface CrudService<DOMAIN, ID> {
 
     @NonNull
     Page<DOMAIN> listAll(@NonNull Pageable pageable);
+
+    @NonNull
+    @Transactional
+    DOMAIN create(@NonNull DOMAIN domain);
 
 }

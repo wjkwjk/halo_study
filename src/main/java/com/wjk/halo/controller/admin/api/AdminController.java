@@ -1,12 +1,17 @@
 package com.wjk.halo.controller.admin.api;
 
+import com.wjk.halo.cache.lock.CacheLock;
+import com.wjk.halo.model.dto.LoginPreCheckDTO;
+import com.wjk.halo.model.entity.User;
+import com.wjk.halo.model.enums.MFAType;
+import com.wjk.halo.model.params.LoginParam;
 import com.wjk.halo.model.properties.PrimaryProperties;
 import com.wjk.halo.service.AdminService;
 import com.wjk.halo.service.OptionService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
 
 @Slf4j
 @RestController
@@ -26,4 +31,12 @@ public class AdminController {
     public boolean isInstall(){
         return optionService.getByPropertyOrDefault(PrimaryProperties.IS_INSTALLED, Boolean.class, false);
     }
+
+    @PostMapping(value = "login/precheck")
+    @CacheLock(autoDelete = false, prefix = "login_precheck")
+    public LoginPreCheckDTO authPreCheck(@RequestBody @Valid LoginParam loginParam){
+        final User user = adminService.authenticate(loginParam);
+        return new LoginPreCheckDTO(MFAType.useMFA(user.getMfaType()));
+    }
+
 }

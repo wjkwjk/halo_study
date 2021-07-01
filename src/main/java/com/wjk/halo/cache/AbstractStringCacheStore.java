@@ -23,7 +23,7 @@ public abstract class AbstractStringCacheStore extends AbstractCacheStore<String
         }
     }
 
-    //key:"options" value:{"is_installed":false}(HashMap类型)
+    //key:"options" value:{"is_installed":false， ...}(HashMap类型,键为数据库中所有查询到的键值对)
     public <T> void putAny(String key, T value){
         try {
             put(key, JsonUtils.objectToJson(value));
@@ -33,6 +33,13 @@ public abstract class AbstractStringCacheStore extends AbstractCacheStore<String
 
     }
 
+    /**
+     *
+     * @param key   "options"(String类型)
+     * @param type  Map类型
+     * @param <T>
+     * @return
+     */
     //将从缓存中得到的String类型json反序列化成type类型对象并返回
     public <T> Optional<T> getAny(String key, Class<T> type){
         return get(key).map(value -> {

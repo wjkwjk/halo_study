@@ -11,6 +11,13 @@ import java.util.*;
 
 public interface PropertyEnum extends ValueEnum<String> {
 
+    /**
+     *目的是为了String类型的value值转变为指定的类型
+     * @param value 数据库全部查询结果中，每一行中列名为value的值
+     * @param type  要查询的枚举类型中存储的value类型
+     * @param <T>
+     * @return
+     */
     //将value转为type类型
     static <T> T convertTo(@NonNull String value, @NonNull Class<T> type){
         if (type.isAssignableFrom(String.class)) {
@@ -48,11 +55,24 @@ public interface PropertyEnum extends ValueEnum<String> {
         throw new UnsupportedOperationException("Unsupported convention for blog property type:" + type.getName() + " provided");
     }
 
+    /**
+     *
+     * @param value
+     * @param propertyEnum
+     * @return
+     */
+
+    /**
+     *
+     * @param value 数据库全部查询结果中，每一行中列名为value的值
+     * @param propertyEnum  需要查找的枚举类型
+     * @return
+     */
     static Object convertTo(@Nullable String value, @NonNull PropertyEnum propertyEnum){
         if (StringUtils.isBlank(value)){
             value = propertyEnum.defaultValue();
         }
-        try {
+        try {   //判断枚举中的value的类型是否属于枚举类型
             if (propertyEnum.getType().isAssignableFrom(Enum.class)){
                 Class<Enum> type = (Class<Enum>) propertyEnum.getType();
                 Enum result = convertToEnum(value, type);
@@ -65,6 +85,13 @@ public interface PropertyEnum extends ValueEnum<String> {
 
     }
 
+    /**
+     *
+     * @param value
+     * @param type
+     * @param <T>
+     * @return
+     */
     //返回美剧类型type
     @Nullable
     static <T extends Enum<T>> T convertToEnum(@NonNull String value, @NonNull Class<T> type){
@@ -75,6 +102,10 @@ public interface PropertyEnum extends ValueEnum<String> {
         }
     }
 
+    /**
+     *
+     * @return
+     */
     //以枚举中的value作为键，以枚举本身作为值
     static Map<String, PropertyEnum> getValuePropertyEnumMap(){
         List<Class<? extends PropertyEnum>> propertyEnumClasses = new LinkedList<>();
