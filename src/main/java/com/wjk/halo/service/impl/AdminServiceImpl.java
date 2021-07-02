@@ -1,12 +1,15 @@
 package com.wjk.halo.service.impl;
 
 import cn.hutool.core.lang.Validator;
+import cn.hutool.core.util.StrUtil;
 import com.wjk.halo.event.logger.LogEvent;
 import com.wjk.halo.exception.BadRequestException;
 import com.wjk.halo.exception.NotFoundException;
 import com.wjk.halo.model.entity.User;
 import com.wjk.halo.model.enums.LogType;
+import com.wjk.halo.model.enums.MFAType;
 import com.wjk.halo.model.params.LoginParam;
+import com.wjk.halo.security.token.AuthToken;
 import com.wjk.halo.service.AdminService;
 import com.wjk.halo.service.UserService;
 import lombok.extern.slf4j.Slf4j;
@@ -56,5 +59,18 @@ public class AdminServiceImpl implements AdminService {
         }
         return user;
 
+    }
+
+    @Override
+    @NonNull
+    public AuthToken authCodeCheck(@NonNull final LoginParam loginParam) {
+        final User user = this.authenticate(loginParam);
+
+        if (MFAType.useMFA(user.getMfaType())){
+            if (StrUtil.isBlank(loginParam.getAuthcode())){
+                throw new BadRequestException("请输入两步验证码")
+            }
+            TwoFa
+        }
     }
 }

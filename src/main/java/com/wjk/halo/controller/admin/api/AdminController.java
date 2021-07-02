@@ -6,6 +6,7 @@ import com.wjk.halo.model.entity.User;
 import com.wjk.halo.model.enums.MFAType;
 import com.wjk.halo.model.params.LoginParam;
 import com.wjk.halo.model.properties.PrimaryProperties;
+import com.wjk.halo.security.token.AuthToken;
 import com.wjk.halo.service.AdminService;
 import com.wjk.halo.service.OptionService;
 import lombok.extern.slf4j.Slf4j;
@@ -39,4 +40,9 @@ public class AdminController {
         return new LoginPreCheckDTO(MFAType.useMFA(user.getMfaType()));
     }
 
+    @PostMapping(value = "login")
+    @CacheLock(autoDelete = false, prefix = "login_auth")
+    public AuthToken auth(@RequestBody @Valid LoginParam loginParam){
+        return adminService.
+    }
 }
