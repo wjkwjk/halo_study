@@ -5,9 +5,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.util.CollectionUtils;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 @Slf4j
@@ -47,4 +50,31 @@ public abstract class AbstractCrudService<DOMAIN, ID> implements CrudService<DOM
     public DOMAIN create(DOMAIN domain) {
         return repository.save(domain);
     }
+
+    @Override
+    public List<DOMAIN> updateInBatch(Collection<DOMAIN> domains) {
+        return CollectionUtils.isEmpty(domains) ? Collections.emptyList() : repository.saveAll(domains);
+    }
+
+    @Override
+    public List<DOMAIN> createInBatch(Collection<DOMAIN> domains) {
+        return CollectionUtils.isEmpty(domains) ? Collections.emptyList() : repository.saveAll(domains);
+    }
+
+    @Override
+    public void flush() {
+        repository.flush();
+    }
+
+    @Override
+    public DOMAIN update(DOMAIN domain) {
+        return repository.saveAndFlush(domain);
+    }
+
+    @Override
+    public long count() {
+        return repository.count();
+    }
+
+
 }

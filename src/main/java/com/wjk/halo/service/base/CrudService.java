@@ -6,6 +6,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.lang.NonNull;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface CrudService<DOMAIN, ID> {
@@ -22,5 +23,21 @@ public interface CrudService<DOMAIN, ID> {
     @NonNull
     @Transactional
     DOMAIN create(@NonNull DOMAIN domain);
+
+    @NonNull
+    @Transactional
+    List<DOMAIN> updateInBatch(@NonNull Collection<DOMAIN> domains);
+
+    @NonNull
+    @Transactional
+    List<DOMAIN> createInBatch(@NonNull Collection<DOMAIN> domains);
+
+    void flush();
+
+    @NonNull
+    @Transactional
+    DOMAIN update(@NonNull DOMAIN domain);
+
+    long count();
 
 }

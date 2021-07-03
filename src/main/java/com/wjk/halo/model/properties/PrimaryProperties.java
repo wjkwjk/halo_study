@@ -3,6 +3,8 @@ package com.wjk.halo.model.properties;
 public enum PrimaryProperties implements PropertyEnum{
 
     IS_INSTALLED("is_installed", Boolean.class, "false"),
+
+    BIRTHDAY("birthday", Long.class, "")
     ;
 
 

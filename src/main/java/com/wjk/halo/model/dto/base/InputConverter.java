@@ -24,4 +24,8 @@ public interface InputConverter <DOMAIN>{
         return ReflectionUtils.getParameterizedType(InputConverter.class, this.getClass());
     }
 
+    default void update(DOMAIN domain){
+        BeanUtils.updateProperties(this, domain);
+    }
+
 }

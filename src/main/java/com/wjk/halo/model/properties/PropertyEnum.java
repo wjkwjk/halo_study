@@ -125,6 +125,23 @@ public interface PropertyEnum extends ValueEnum<String> {
         return result;
     }
 
+    static boolean isSupportedType(Class<?> type){
+        if (type==null){
+            return false;
+        }
+        return type.isAssignableFrom(String.class)
+                || type.isAssignableFrom(Number.class)
+                || type.isAssignableFrom(Integer.class)
+                || type.isAssignableFrom(Long.class)
+                || type.isAssignableFrom(Boolean.class)
+                || type.isAssignableFrom(Short.class)
+                || type.isAssignableFrom(Byte.class)
+                || type.isAssignableFrom(Double.class)
+                || type.isAssignableFrom(Float.class)
+                || type.isAssignableFrom(Enum.class)
+                || type.isAssignableFrom(ValueEnum.class);
+    }
+
     Class<?> getType();
 
     @Nullable

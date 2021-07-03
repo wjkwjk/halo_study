@@ -1,20 +1,24 @@
 package com.wjk.halo.service.impl;
 
 import cn.hutool.crypto.digest.BCrypt;
+import com.wjk.halo.event.logger.LogEvent;
+import com.wjk.halo.event.user.UserUpdateEvent;
 import com.wjk.halo.exception.ForbiddenException;
 import com.wjk.halo.exception.NotFoundException;
 import com.wjk.halo.model.entity.User;
+import com.wjk.halo.model.enums.LogType;
+import com.wjk.halo.model.enums.MFAType;
+import com.wjk.halo.model.params.UserParam;
 import com.wjk.halo.repository.UserRepository;
-import com.wjk.halo.repository.base.BaseRepository;
 import com.wjk.halo.service.UserService;
 import com.wjk.halo.service.base.AbstractCrudService;
 import com.wjk.halo.utils.DateUtils;
 import com.wjk.halo.utils.HaloUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.util.Date;
 import java.util.List;
@@ -22,12 +26,14 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 @Service
-public class UserServiceImpl extends AbstractCrudService<User, Integer>implements UserService {
+public class UserServiceImpl extends AbstractCrudService<User, Integer> implements UserService {
     private final UserRepository userRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
-    public UserServiceImpl(UserRepository userRepository) {
+    public UserServiceImpl(UserRepository userRepository, ApplicationEventPublisher eventPublisher) {
         super(userRepository);
         this.userRepository = userRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -42,6 +48,31 @@ public class UserServiceImpl extends AbstractCrudService<User, Integer>implement
 
     public Optional<User> getByEmail(String email){
         return userRepository.findByEmail(email);
+    }
+
+    @Override
+    public Optional<User> getCurrentUser() {
+        List<User> users = listAll();
+
+        if (CollectionUtils.isEmpty(users)){
+            return Optional.empty();
+        }
+
+        return Optional.of(users.get(0));
+    }
+
+    @Override
+    public void setPassword(@NonNull User user, @NonNull String plainPassword) {
+        user.setPassword(BCrypt.hashpw(plainPassword, BCrypt.gensalt()));
+        user.setMfaType(MFAType.NONE);
+        user.setMfaKey(null);
+    }
+
+    @Override
+    public User createBy(UserParam userParam) {
+        User user = userParam.convertTo();
+        setPassword(user, userParam.getPassword());
+        return create(user);
     }
 
     @Override
@@ -60,8 +91,17 @@ public class UserServiceImpl extends AbstractCrudService<User, Integer>implement
 
     @Override
     public boolean passwordMatch(User user, String plainPassword) {
+        //数据库中的密码是先经过BCrypt.hashpw("password", BCrypt.gensalt())加密过的，如果使用没有加密过的会报错
         return !StringUtils.isBlank(plainPassword) && BCrypt.checkpw(plainPassword, user.getPassword());
     }
 
 
+    @Override
+    public User update(User user) {
+        User updateUser = super.update(user);
+
+        eventPublisher.publishEvent(new LogEvent(this, user.getId().toString(), LogType.PROFILE_UPDATED, user.getUsername()));
+        eventPublisher.publishEvent(new UserUpdateEvent(this, user.getId()));
+        return updateUser;
+    }
 }

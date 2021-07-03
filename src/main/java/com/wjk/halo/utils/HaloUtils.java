@@ -4,6 +4,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.lang.NonNull;
 
+import java.util.UUID;
+
 @Slf4j
 public class HaloUtils {
 
@@ -56,7 +58,13 @@ public class HaloUtils {
 
         return timeBuilder.toString();
 
-
     }
+
+    //生成唯一识别码作为AccessToken以及RefreshToken
+    @NonNull
+    public static String randomUUIDWithoutDash(){
+        return StringUtils.remove(UUID.randomUUID().toString(),'-');
+    }
+
 
 }

@@ -37,12 +37,13 @@ public class AdminController {
     @CacheLock(autoDelete = false, prefix = "login_precheck")
     public LoginPreCheckDTO authPreCheck(@RequestBody @Valid LoginParam loginParam){
         final User user = adminService.authenticate(loginParam);
+        //返回一个bool值，表示是否启用MFA，不管是false还是true,都能表示precheck通过
         return new LoginPreCheckDTO(MFAType.useMFA(user.getMfaType()));
     }
 
     @PostMapping(value = "login")
     @CacheLock(autoDelete = false, prefix = "login_auth")
     public AuthToken auth(@RequestBody @Valid LoginParam loginParam){
-        return adminService.
+        return adminService.authCodeCheck(loginParam);
     }
 }

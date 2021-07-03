@@ -1,16 +1,14 @@
 package com.wjk.halo.model.enums;
 
-public enum LogType implements ValueEnum<Integer>{
-    LOGIN_FAILED(35),
+public enum PostEditorType implements ValueEnum<Integer>{
 
-    LOGIN_IN(25),
-
-    PROFILE_UPDATED(45)
+    MARKDOWN(0),
+    RICHTEXT(1),
     ;
 
     private final Integer value;
 
-    LogType(Integer value) {
+    PostEditorType(Integer value) {
         this.value = value;
     }
 

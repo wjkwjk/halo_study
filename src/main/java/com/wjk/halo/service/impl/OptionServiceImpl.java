@@ -1,18 +1,28 @@
 package com.wjk.halo.service.impl;
 
 import com.wjk.halo.cache.AbstractStringCacheStore;
+import com.wjk.halo.event.options.OptionUpdateEvent;
 import com.wjk.halo.model.entity.Option;
+import com.wjk.halo.model.params.OptionParam;
+import com.wjk.halo.model.properties.BlogProperties;
 import com.wjk.halo.model.properties.PropertyEnum;
 import com.wjk.halo.repository.OptionRepository;
 import com.wjk.halo.service.OptionService;
 import com.wjk.halo.service.base.AbstractCrudService;
 import com.wjk.halo.utils.ServiceUtils;
+import com.wjk.halo.utils.ValidationUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
 import java.util.*;
 
@@ -23,12 +33,16 @@ public class OptionServiceImpl extends AbstractCrudService<Option, Integer> impl
     private final OptionRepository optionRepository;
     private final AbstractStringCacheStore cacheStore;
     private final Map<String, PropertyEnum> propertyEnumMap;
+    private final ApplicationContext applicationContext;
+    private final ApplicationEventPublisher eventPublisher;
 
     //抽象类对象作为方法参数有问题？
-    public OptionServiceImpl(OptionRepository optionRepository, AbstractStringCacheStore cacheStore) {
+    public OptionServiceImpl(OptionRepository optionRepository, AbstractStringCacheStore cacheStore, ApplicationContext applicationContext, ApplicationEventPublisher eventPublisher) {
         super(optionRepository);
         this.optionRepository = optionRepository;
         this.cacheStore = cacheStore;
+        this.applicationContext = applicationContext;
+        this.eventPublisher = eventPublisher;
 
         propertyEnumMap = Collections.unmodifiableMap(PropertyEnum.getValuePropertyEnumMap());
     }
@@ -134,5 +148,107 @@ public class OptionServiceImpl extends AbstractCrudService<Option, Integer> impl
     @Override
     public Page<Option> listAll(Pageable pageable) {
         return null;
+    }
+
+    @Override
+    public String getBlogTitle() {
+        return getByProperty(BlogProperties.BLOG_TITLE).orElse("").toString();
+    }
+
+    @Override
+    public String getBlogBaseUrl() {
+        String serverPort = applicationContext.getEnvironment().getProperty("server.port", "18080");
+        String blogUrl = getByProperty(BlogProperties.BLOG_URL).orElse("").toString();
+
+        if (StringUtils.isNotBlank(blogUrl)){
+            blogUrl = StringUtils.removeEnd(blogUrl, "/");
+        }else {
+            blogUrl = String.format("http://%s:%s", "127.0.0.1", serverPort);
+        }
+        return blogUrl;
+    }
+
+    @Deprecated
+    @Transactional
+    private void save(@NonNull String key, @Nullable String value){
+        save(Collections.singletonMap(key, value));
+    }
+
+    @Override
+    @Transactional
+    public void save(Map<String, Object> optionMap) {
+        if (CollectionUtils.isEmpty(optionMap)){
+            return;
+        }
+
+        Map<String, Option> optionKeyMap = ServiceUtils.convertToMap(listAll(), Option::getKey);
+
+        List<Option> optionsToCreate = new LinkedList<>();
+        List<Option> optionsToUpdate = new LinkedList<>();
+
+        optionMap.forEach((key, value) -> {
+            Option oldOption = optionKeyMap.get(key);
+            if (oldOption == null || !StringUtils.equals(oldOption.getValue(), value.toString())){
+                OptionParam optionParam = new OptionParam();
+                optionParam.setKey(key);
+                optionParam.setValue(value.toString());
+                ValidationUtils.validate(optionParam);
+
+                if (oldOption == null){
+                    optionsToCreate.add(optionParam.convertTo());
+                }else if (!StringUtils.equals(oldOption.getValue(), value.toString())){
+                    optionParam.update(oldOption);
+                    optionsToUpdate.add(oldOption);
+                }
+            }
+        });
+
+        updateInBatch(optionsToUpdate);
+
+        createInBatch(optionsToCreate);
+
+        if (!CollectionUtils.isEmpty(optionsToUpdate) || !CollectionUtils.isEmpty(optionsToCreate)){
+            publishOptionUpdateEvent();
+        }
+    }
+
+    private void cleanCache(){
+        cacheStore.delete(OPTIONS_KEY);
+    }
+
+    private void publishOptionUpdateEvent(){
+        flush();
+        cleanCache();
+        eventPublisher.publishEvent(new OptionUpdateEvent(this));
+    }
+
+    @Override
+    public void save(List<OptionParam> optionParams) {
+        if (CollectionUtils.isEmpty(optionParams)){
+            return;
+        }
+        Map<String, Object> optionMap = ServiceUtils.convertToMap(optionParams, OptionParam::getKey, OptionParam::getValue);
+        save(optionMap);
+    }
+
+    @Override
+    public void save(OptionParam optionParam) {
+        Option option = optionParam.convertTo();
+        create(option);
+        publishOptionUpdateEvent();
+    }
+
+    @Override
+    public void saveProperty(PropertyEnum property, String value) {
+        save(property.getValue(), value);
+    }
+
+    @Override
+    public void saveProperties(Map<? extends PropertyEnum, String> properties) {
+        if (CollectionUtils.isEmpty(properties)){
+            return;
+        }
+        Map<String, Object> optionMap = new LinkedHashMap<>();
+        properties.forEach((property, value) -> optionMap.put(property.getValue(), value));
     }
 }
