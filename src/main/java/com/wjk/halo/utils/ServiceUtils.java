@@ -73,5 +73,9 @@ public class ServiceUtils {
 
     }
 
+    public static boolean isEmptyId(@Nullable Number id){
+        return id == null || id.longValue() <= 0;
+    }
+
 
 }

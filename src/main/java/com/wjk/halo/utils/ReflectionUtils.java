@@ -57,4 +57,13 @@ public class ReflectionUtils {
 
     }
 
+    @Nullable
+    public static ParameterizedType getParameterizedTypeBySuperClass(@NonNull Class<?> superClassType, Class<?> extensionClass){
+        if (extensionClass == null){
+            return null;
+        }
+        return getParameterizedType(superClassType, extensionClass.getGenericSuperclass());
+    }
+
+
 }

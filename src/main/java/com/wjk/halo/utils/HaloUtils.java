@@ -9,6 +9,8 @@ import java.util.UUID;
 @Slf4j
 public class HaloUtils {
 
+    private static final String RE_HTML_MARK = "(<[^<]*?>)|(<[\\s]*?/[^<]*?>)|(<[^<]*?/[\\s]*?>)";
+
     @NonNull
     public static String pluralize(long times, @NonNull String label, @NonNull String pluralLabel){
         if (times<=0){
@@ -66,5 +68,12 @@ public class HaloUtils {
         return StringUtils.remove(UUID.randomUUID().toString(),'-');
     }
 
+
+    public static String cleanHtmlTag(String content){
+        if (StringUtils.isEmpty(content)){
+            return StringUtils.EMPTY;
+        }
+        return content.replaceAll(RE_HTML_MARK, StringUtils.EMPTY);
+    }
 
 }
