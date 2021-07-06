@@ -123,7 +123,7 @@ public class InstallController {
 
     @Nullable
     private PostDetailVO createDefaultPostIfAbsent(@Nullable Category category){
-        long publishedCount =
+        long publishedCount = postService.coun
     }
 
 }
