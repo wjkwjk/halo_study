@@ -1,5 +1,6 @@
 package com.wjk.halo.service.base;
 
+import com.wjk.halo.model.dto.BaseMetaDTO;
 import com.wjk.halo.model.entity.BaseMeta;
 import org.springframework.lang.NonNull;
 
@@ -11,4 +12,10 @@ public interface BaseMetaService<META extends BaseMeta> extends CrudService<META
     List<META> createOrUpdateByPostId(@NonNull Integer postId, Set<META> metas);
 
     List<META> removeByPostId(@NonNull Integer postId);
+
+    @NonNull
+    BaseMetaDTO convertTo(@NonNull META postmeta);
+
+    @NonNull
+    List<BaseMetaDTO> convertTo(@NonNull List<META> postMetaList);
 }

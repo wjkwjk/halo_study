@@ -10,4 +10,9 @@ import lombok.ToString;
 @ToString
 @EqualsAndHashCode
 public class BasePostMinimalDTO implements OutputConverter<BasePostMinimalDTO, BasePost> {
+
+    private Integer id;
+
+    private String title;
+
 }

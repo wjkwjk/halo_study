@@ -1,5 +1,6 @@
 package com.wjk.halo.service.impl;
 
+import com.wjk.halo.model.dto.BaseMetaDTO;
 import com.wjk.halo.model.entity.BaseMeta;
 import com.wjk.halo.repository.base.BaseMetaRepository;
 import com.wjk.halo.service.base.AbstractCrudService;
@@ -12,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public abstract class BaseMetaServiceImpl<META extends BaseMeta> extends AbstractCrudService<META, Long> implements BaseMetaService<META> {
 
@@ -43,5 +45,22 @@ public abstract class BaseMetaServiceImpl<META extends BaseMeta> extends Abstrac
     @Override
     public List<META> removeByPostId(@NotNull Integer postId) {
         return baseMetaRepository.deleteByPostId(postId);
+    }
+
+
+    @Override
+    public @NotNull BaseMetaDTO convertTo(@NotNull META postmeta) {
+        return new BaseMetaDTO().convertFrom(postmeta);
+    }
+
+    @Override
+    public @NotNull List<BaseMetaDTO> convertTo(@NotNull List<META> postMetaList) {
+        if (CollectionUtils.isEmpty(postMetaList)){
+            return Collections.emptyList();
+        }
+
+        return postMetaList.stream()
+                .map(this::convertTo)
+                .collect(Collectors.toList());
     }
 }
