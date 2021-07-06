@@ -4,6 +4,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
@@ -39,5 +40,11 @@ public interface CrudService<DOMAIN, ID> {
     DOMAIN update(@NonNull DOMAIN domain);
 
     long count();
+
+    @NonNull
+    List<DOMAIN> listAllByIds(@Nullable Collection<ID> ids);
+
+    @Transactional
+    void removeAll(@NonNull Collection<DOMAIN> domains);
 
 }

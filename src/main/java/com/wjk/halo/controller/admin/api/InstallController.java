@@ -5,8 +5,10 @@ import com.wjk.halo.cache.lock.CacheLock;
 import com.wjk.halo.exception.BadRequestException;
 import com.wjk.halo.model.entity.Category;
 import com.wjk.halo.model.entity.User;
+import com.wjk.halo.model.enums.PostStatus;
 import com.wjk.halo.model.params.CategoryParam;
 import com.wjk.halo.model.params.InstallParam;
+import com.wjk.halo.model.params.PostParam;
 import com.wjk.halo.model.properties.BlogProperties;
 import com.wjk.halo.model.properties.OtherProperties;
 import com.wjk.halo.model.properties.PrimaryProperties;
@@ -29,7 +31,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 @Slf4j
 @Controller
@@ -123,7 +127,24 @@ public class InstallController {
 
     @Nullable
     private PostDetailVO createDefaultPostIfAbsent(@Nullable Category category){
-        long publishedCount = postService.coun
+        long publishedCount = postService.countByStatus(PostStatus.PUBLISHED);
+
+        if (publishedCount > 0){
+            return null;
+        }
+
+        PostParam postParam = new PostParam();
+        postParam.setSlug("hello-halo");
+        postParam.setTitle("Hello halo");
+        postParam.setStatus(PostStatus.PUBLISHED);
+        postParam.setOriginalContent("恭喜你，安装成功");
+
+        Set<Integer> categoryIds = new HashSet<>();
+        if (category != null){
+            categoryIds.add(category.getId());
+            postParam.setCategoryIds(categoryIds);
+        }
+        return postService.crea
     }
 
 }

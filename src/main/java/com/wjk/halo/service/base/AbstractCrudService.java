@@ -76,5 +76,18 @@ public abstract class AbstractCrudService<DOMAIN, ID> implements CrudService<DOM
         return repository.count();
     }
 
+    @Override
+    public List<DOMAIN> listAllByIds(Collection<ID> ids) {
+        return CollectionUtils.isEmpty(ids) ? Collections.emptyList() : repository.findAllById(ids);
 
+    }
+
+    @Override
+    public void removeAll(Collection<DOMAIN> domains) {
+        if (CollectionUtils.isEmpty(domains)){
+            log.debug(domainName + " collection is empty");
+            return;
+        }
+        repository.deleteInBatch(domains);
+    }
 }

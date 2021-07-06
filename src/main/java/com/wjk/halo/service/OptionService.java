@@ -1,6 +1,7 @@
 package com.wjk.halo.service;
 
 import com.wjk.halo.model.entity.Option;
+import com.wjk.halo.model.entity.PostTag;
 import com.wjk.halo.model.params.OptionParam;
 import com.wjk.halo.model.properties.PropertyEnum;
 import com.wjk.halo.service.base.CrudService;
@@ -57,5 +58,6 @@ public interface OptionService extends CrudService<Option, Integer> {
 
     @Transactional
     void saveProperties(@NonNull Map<? extends PropertyEnum, String> properties);
+
 
 }

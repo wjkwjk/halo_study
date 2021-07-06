@@ -8,4 +8,7 @@ import lombok.ToString;
 @ToString
 @EqualsAndHashCode(callSuper = true)
 public class BasePostSimpleDTO extends BasePostMinimalDTO{
+
+    private String summary;
+
 }
