@@ -5,6 +5,8 @@ import com.wjk.halo.event.options.OptionUpdateEvent;
 import com.wjk.halo.model.entity.Option;
 import com.wjk.halo.model.params.OptionParam;
 import com.wjk.halo.model.properties.BlogProperties;
+import com.wjk.halo.model.properties.OtherProperties;
+import com.wjk.halo.model.properties.PermalinkProperties;
 import com.wjk.halo.model.properties.PropertyEnum;
 import com.wjk.halo.repository.OptionRepository;
 import com.wjk.halo.service.OptionService;
@@ -250,5 +252,26 @@ public class OptionServiceImpl extends AbstractCrudService<Option, Integer> impl
         }
         Map<String, Object> optionMap = new LinkedHashMap<>();
         properties.forEach((property, value) -> optionMap.put(property.getValue(), value));
+    }
+
+    @Override
+    public Boolean isEnabledAbsolutePath() {
+        return getByPropertyOrDefault(OtherProperties.GLOBAL_ABSOLUTE_PATH_ENABLED, Boolean.class, true);
+    }
+
+    @Override
+    public String getTagsPrefix() {
+        return getByPropertyOrDefault(PermalinkProperties.TAGS_PREFIX, String.class, PermalinkProperties.TAGS_PREFIX.defaultValue());
+    }
+
+    @Override
+    public String getPathSuffix() {
+        return getByPropertyOrDefault(PermalinkProperties.PATH_SUFFIX, String.class, PermalinkProperties.PATH_SUFFIX.defaultValue());
+    }
+
+    @Override
+    public String getCategoriesPrefix() {
+
+        return getByPropertyOrDefault(PermalinkProperties.CATEGORIES_PREFIX, String.class, PermalinkProperties.CATEGORIES_PREFIX.defaultValue());
     }
 }

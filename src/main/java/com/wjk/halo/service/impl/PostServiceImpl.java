@@ -1,15 +1,19 @@
 package com.wjk.halo.service.impl;
 
+import com.wjk.halo.event.logger.LogEvent;
 import com.wjk.halo.model.entity.*;
+import com.wjk.halo.model.enums.LogType;
 import com.wjk.halo.model.vo.PostDetailVO;
 import com.wjk.halo.repository.base.BasePostRepository;
 import com.wjk.halo.service.*;
 import com.wjk.halo.utils.ServiceUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Set;
@@ -24,8 +28,10 @@ public class PostServiceImpl extends BasePostServiceImpl<Post> implements PostSe
     private final TagService tagService;
     private final CategoryService categoryService;
     private final PostMetaService postMetaService;
+    private final ApplicationEventPublisher eventPublisher;
+    private final PostCommentS
 
-    public PostServiceImpl(BasePostRepository<Post> basePostRepository, OptionService optionService, PostTagService postTagService, PostCategoryService postCategoryService, TagService tagService, CategoryService categoryService, PostMetaService postMetaService) {
+    public PostServiceImpl(BasePostRepository<Post> basePostRepository, OptionService optionService, PostTagService postTagService, PostCategoryService postCategoryService, TagService tagService, CategoryService categoryService, PostMetaService postMetaService, ApplicationEventPublisher eventPublisher) {
         super(basePostRepository, optionService);
         this.optionService = optionService;
         this.postTagService = postTagService;
@@ -33,6 +39,7 @@ public class PostServiceImpl extends BasePostServiceImpl<Post> implements PostSe
         this.tagService = tagService;
         this.categoryService = categoryService;
         this.postMetaService = postMetaService;
+        this.eventPublisher = eventPublisher;
     }
 
 
@@ -45,13 +52,40 @@ public class PostServiceImpl extends BasePostServiceImpl<Post> implements PostSe
         }
 
         Set<Integer> tagIds = ServiceUtils.fetchProperty(tags, Tag::getId);
-        Set<Integer> categoryIds = ServiceUtils.fetchProperty()
+        Set<Integer> categoryIds = ServiceUtils.fetchProperty(categories, Category::getId);
+        Set<Long> metaIds = ServiceUtils.fetchProperty(postMetaList, PostMeta::getId);
+
+        postDetailVO.setTagIds(tagIds);
+        postDetailVO.setTags(tagService.convertTo(tags));
+
+        postDetailVO.setCategoryIds(categoryIds);
+        postDetailVO.setCategories(categoryService.convertTo(categories));
+
+        postDetailVO.setMetaIds(metaIds);
+        postDetailVO.setMetas(postMetaService.convertTo(postMetaList));
+
+        postDetailVO.setCommentCount(p);
 
     }
 
     @Override
-    public PostDetailVO createBy(Post post, Set<Integer> tagIds, Set<Integer> categoryIds, boolean autoSave) {
-        PostDetailVO createdPost = crea
+    public PostDetailVO createBy(Post postToCreate, Set<Integer> tagIds, Set<Integer> categoryIds, boolean autoSave) {
+        PostDetailVO createdPost = createOrUpdate(postToCreate, tagIds, categoryIds, null);
+        if (!autoSave){
+            LogEvent logEvent = new LogEvent(this, createdPost.getId().toString(), LogType.POST_PUBLISHED, createdPost.getTitle());
+            eventPublisher.publishEvent(logEvent);
+        }
+    }
+
+    @Override
+    @Transactional
+    public PostDetailVO createBy(Post postToCreate, Set<Integer> tagIds, Set<Integer> categoryIds, Set<PostMeta> metas, boolean autoSave) {
+        PostDetailVO createdPost = createOrUpdate(postToCreate, tagIds, categoryIds, metas);
+        if (!autoSave){
+            LogEvent logEvent = new LogEvent(this, createdPost.getId().toString(), LogType.POST_PUBLISHED, createdPost.getTitle());
+            eventPublisher.publishEvent(logEvent);
+        }
+        return createdPost;
     }
 
 
@@ -80,7 +114,7 @@ public class PostServiceImpl extends BasePostServiceImpl<Post> implements PostSe
 
         log.debug("Created post metas: [{}]", postMetaList);
 
-        return con
+        return convertTo(post, tags, categories, postMetaList);
 
 
 

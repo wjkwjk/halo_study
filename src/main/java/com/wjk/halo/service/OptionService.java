@@ -59,5 +59,12 @@ public interface OptionService extends CrudService<Option, Integer> {
     @Transactional
     void saveProperties(@NonNull Map<? extends PropertyEnum, String> properties);
 
+    Boolean isEnabledAbsolutePath();
+
+    String getTagsPrefix();
+
+    String getPathSuffix();
+
+    String getCategoriesPrefix();
 
 }
