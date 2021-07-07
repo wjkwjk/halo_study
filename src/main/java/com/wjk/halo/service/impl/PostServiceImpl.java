@@ -1,8 +1,10 @@
 package com.wjk.halo.service.impl;
 
+import cn.hutool.core.date.DateUtil;
 import com.wjk.halo.event.logger.LogEvent;
 import com.wjk.halo.model.entity.*;
 import com.wjk.halo.model.enums.LogType;
+import com.wjk.halo.model.enums.PostPermalinkType;
 import com.wjk.halo.model.vo.PostDetailVO;
 import com.wjk.halo.repository.base.BasePostRepository;
 import com.wjk.halo.service.*;
@@ -18,6 +20,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Set;
 
+import static org.springframework.data.domain.Sort.Direction.DESC;
+import static com.wjk.halo.model.support.HaloConst.URL_SEPARATOR;
+
 @Slf4j
 @Service
 public class PostServiceImpl extends BasePostServiceImpl<Post> implements PostService {
@@ -29,9 +34,9 @@ public class PostServiceImpl extends BasePostServiceImpl<Post> implements PostSe
     private final CategoryService categoryService;
     private final PostMetaService postMetaService;
     private final ApplicationEventPublisher eventPublisher;
-    private final PostCommentS
+    private final PostCommentService postCommentService;
 
-    public PostServiceImpl(BasePostRepository<Post> basePostRepository, OptionService optionService, PostTagService postTagService, PostCategoryService postCategoryService, TagService tagService, CategoryService categoryService, PostMetaService postMetaService, ApplicationEventPublisher eventPublisher) {
+    public PostServiceImpl(BasePostRepository<Post> basePostRepository, OptionService optionService, PostTagService postTagService, PostCategoryService postCategoryService, TagService tagService, CategoryService categoryService, PostMetaService postMetaService, ApplicationEventPublisher eventPublisher, PostCommentService postCommentService) {
         super(basePostRepository, optionService);
         this.optionService = optionService;
         this.postTagService = postTagService;
@@ -40,6 +45,7 @@ public class PostServiceImpl extends BasePostServiceImpl<Post> implements PostSe
         this.categoryService = categoryService;
         this.postMetaService = postMetaService;
         this.eventPublisher = eventPublisher;
+        this.postCommentService = postCommentService;
     }
 
 
@@ -64,7 +70,62 @@ public class PostServiceImpl extends BasePostServiceImpl<Post> implements PostSe
         postDetailVO.setMetaIds(metaIds);
         postDetailVO.setMetas(postMetaService.convertTo(postMetaList));
 
-        postDetailVO.setCommentCount(p);
+        postDetailVO.setCommentCount(postCommentService.countByPostId(post.getId()));
+
+        postDetailVO.setFullPath(buildFullPath(post));
+
+        return postDetailVO;
+
+    }
+
+    private String buildFullPath(Post post){
+        PostPermalinkType permalinkType = optionService.getPostPermalinkType();
+        String pathSuffix = optionService.getPathSuffix();
+        String archivePrefix = optionService.getArchivesPrefix();
+        int month = DateUtil.month(post.getCreateTime()) + 1;
+        String monthString = month < 10 ? "0" + month : String.valueOf(month);
+
+        int day = DateUtil.dayOfMonth(post.getCreateTime());
+        String dayString = day < 10 ? "0" + day:String.valueOf(day);
+
+        StringBuilder fullPath = new StringBuilder();
+
+        if (optionService.isEnabledAbsolutePath()){
+            fullPath.append(optionService.getBlogBaseUrl());
+        }
+        fullPath.append(URL_SEPARATOR);
+
+        if (permalinkType.equals(PostPermalinkType.DEFAULT)){
+            fullPath.append(archivePrefix)
+                    .append(URL_SEPARATOR)
+                    .append(post.getSlug())
+                    .append(pathSuffix);
+        }else if (permalinkType.equals(PostPermalinkType.ID)){
+            fullPath.append("?p=")
+                    .append(post.getId());
+        }else if (permalinkType.equals(PostPermalinkType.DATE)){
+            fullPath.append(DateUtil.year(post.getCreateTime()))
+                    .append(URL_SEPARATOR)
+                    .append(monthString)
+                    .append(URL_SEPARATOR)
+                    .append(post.getSlug())
+                    .append(pathSuffix);
+        }else if (permalinkType.equals(PostPermalinkType.DAY)) {
+            fullPath.append(DateUtil.year(post.getCreateTime()))
+                    .append(URL_SEPARATOR)
+                    .append(monthString)
+                    .append(URL_SEPARATOR)
+                    .append(dayString)
+                    .append(URL_SEPARATOR)
+                    .append(post.getSlug())
+                    .append(pathSuffix);
+        } else if (permalinkType.equals(PostPermalinkType.YEAR)) {
+            fullPath.append(DateUtil.year(post.getCreateTime()))
+                    .append(URL_SEPARATOR)
+                    .append(post.getSlug())
+                    .append(pathSuffix);
+        }
+        return fullPath.toString();
 
     }
 
@@ -75,6 +136,7 @@ public class PostServiceImpl extends BasePostServiceImpl<Post> implements PostSe
             LogEvent logEvent = new LogEvent(this, createdPost.getId().toString(), LogType.POST_PUBLISHED, createdPost.getTitle());
             eventPublisher.publishEvent(logEvent);
         }
+        return createdPost;
     }
 
     @Override
@@ -115,9 +177,6 @@ public class PostServiceImpl extends BasePostServiceImpl<Post> implements PostSe
         log.debug("Created post metas: [{}]", postMetaList);
 
         return convertTo(post, tags, categories, postMetaList);
-
-
-
 
     }
 

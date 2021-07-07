@@ -15,4 +15,5 @@ public class BasePostMinimalDTO implements OutputConverter<BasePostMinimalDTO, B
 
     private String title;
 
+    private String fullPath;
 }

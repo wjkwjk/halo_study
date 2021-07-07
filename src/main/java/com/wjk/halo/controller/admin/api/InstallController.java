@@ -30,10 +30,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 @Slf4j
 @Controller
@@ -71,7 +68,9 @@ public class InstallController {
 
         Category category = createDefaultCategoryIfAbsent();
 
-        PostDetailVO post =
+        PostDetailVO post = createDefaultPostIfAbsent(category);
+
+
 
 
     }
@@ -144,7 +143,12 @@ public class InstallController {
             categoryIds.add(category.getId());
             postParam.setCategoryIds(categoryIds);
         }
-        return postService.crea
+        return postService.createBy(postParam.convertTo(), Collections.emptySet(), categoryIds, false);
+    }
+
+    @Nullable
+    private void createDefaultSheet(){
+        long publishedCount = shee
     }
 
 }

@@ -2,6 +2,7 @@ package com.wjk.halo.service;
 
 import com.wjk.halo.model.entity.Option;
 import com.wjk.halo.model.entity.PostTag;
+import com.wjk.halo.model.enums.PostPermalinkType;
 import com.wjk.halo.model.params.OptionParam;
 import com.wjk.halo.model.properties.PropertyEnum;
 import com.wjk.halo.service.base.CrudService;
@@ -67,4 +68,13 @@ public interface OptionService extends CrudService<Option, Integer> {
 
     String getCategoriesPrefix();
 
+    PostPermalinkType getPostPermalinkType();
+
+    @Nullable
+    <T extends Enum<T>> T getEnumByPropertyOrDefault(@NonNull PropertyEnum propertyEnum, @NonNull Class<T> valueType, @Nullable T defaultValue);
+
+    @NonNull
+    <T extends Enum<T>> Optional<T> getEnumByProperty(@NonNull PropertyEnum property, @NonNull Class<T> valueType);
+
+    String getArchivesPrefix();
 }

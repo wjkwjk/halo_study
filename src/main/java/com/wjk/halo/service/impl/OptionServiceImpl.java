@@ -3,6 +3,7 @@ package com.wjk.halo.service.impl;
 import com.wjk.halo.cache.AbstractStringCacheStore;
 import com.wjk.halo.event.options.OptionUpdateEvent;
 import com.wjk.halo.model.entity.Option;
+import com.wjk.halo.model.enums.PostPermalinkType;
 import com.wjk.halo.model.params.OptionParam;
 import com.wjk.halo.model.properties.BlogProperties;
 import com.wjk.halo.model.properties.OtherProperties;
@@ -274,4 +275,27 @@ public class OptionServiceImpl extends AbstractCrudService<Option, Integer> impl
 
         return getByPropertyOrDefault(PermalinkProperties.CATEGORIES_PREFIX, String.class, PermalinkProperties.CATEGORIES_PREFIX.defaultValue());
     }
+
+    @Override
+    public PostPermalinkType getPostPermalinkType() {
+
+        return getEnumByPropertyOrDefault(PermalinkProperties.POST_PERMALINK_TYPE, PostPermalinkType.class, PostPermalinkType.DEFAULT);
+    }
+
+    @Override
+    public <T extends Enum<T>> T getEnumByPropertyOrDefault(PropertyEnum property, Class<T> valueType, T defaultValue) {
+        return getEnumByProperty(property, valueType).orElse(defaultValue);
+    }
+
+    @Override
+    public <T extends Enum<T>> Optional<T> getEnumByProperty(PropertyEnum property, Class<T> valueType) {
+        return getByProperty(property).map(value -> PropertyEnum.convertToEnum(value.toString(), valueType));
+    }
+
+    @Override
+    public String getArchivesPrefix() {
+        return getByPropertyOrDefault(PermalinkProperties.ARCHIVES_PREFIX, String.class, PermalinkProperties.ARCHIVES_PREFIX.defaultValue());
+    }
+
+
 }
