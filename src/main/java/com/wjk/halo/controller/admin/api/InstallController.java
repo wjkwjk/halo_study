@@ -2,13 +2,14 @@ package com.wjk.halo.controller.admin.api;
 
 import cn.hutool.crypto.SecureUtil;
 import com.wjk.halo.cache.lock.CacheLock;
+import com.wjk.halo.event.logger.LogEvent;
 import com.wjk.halo.exception.BadRequestException;
 import com.wjk.halo.model.entity.Category;
+import com.wjk.halo.model.entity.PostComment;
 import com.wjk.halo.model.entity.User;
+import com.wjk.halo.model.enums.LogType;
 import com.wjk.halo.model.enums.PostStatus;
-import com.wjk.halo.model.params.CategoryParam;
-import com.wjk.halo.model.params.InstallParam;
-import com.wjk.halo.model.params.PostParam;
+import com.wjk.halo.model.params.*;
 import com.wjk.halo.model.properties.BlogProperties;
 import com.wjk.halo.model.properties.OtherProperties;
 import com.wjk.halo.model.properties.PrimaryProperties;
@@ -16,13 +17,11 @@ import com.wjk.halo.model.properties.PropertyEnum;
 import com.wjk.halo.model.support.BaseResponse;
 import com.wjk.halo.model.support.CreateCheck;
 import com.wjk.halo.model.vo.PostDetailVO;
-import com.wjk.halo.service.CategoryService;
-import com.wjk.halo.service.OptionService;
-import com.wjk.halo.service.PostService;
-import com.wjk.halo.service.UserService;
+import com.wjk.halo.service.*;
 import com.wjk.halo.utils.ValidationUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -38,22 +37,30 @@ import java.util.*;
 public class InstallController {
 
 
-    private final OptionService optionService;
     private final UserService userService;
     private final CategoryService categoryService;
     private final PostService postService;
+    private final SheetService sheetService;
+    private final PostCommentService postCommentService;
+    private final OptionService optionService;
+    private final MenuService menuService;
+    private final ApplicationEventPublisher eventPublisher;
 
-    public InstallController(OptionService optionService, UserService userService, CategoryService categoryService, PostService postService) {
+    public InstallController(UserService userService, CategoryService categoryService, PostService postService, SheetService sheetService, PostCommentService postCommentService, OptionService optionService, MenuService menuService, ApplicationEventPublisher eventPublisher) {
         this.optionService = optionService;
         this.userService = userService;
         this.categoryService = categoryService;
         this.postService = postService;
+        this.sheetService = sheetService;
+        this.postCommentService = postCommentService;
+        this.menuService = menuService;
+        this.eventPublisher = eventPublisher;
     }
 
     @PostMapping
     @ResponseBody
     @CacheLock
-    public BaseResponse<String>  installBlog(@RequestBody InstallParam installParam){
+    public BaseResponse<String> installBlog(@RequestBody InstallParam installParam){
 
         ValidationUtils.validate(installParam, CreateCheck.class);
 
@@ -70,7 +77,15 @@ public class InstallController {
 
         PostDetailVO post = createDefaultPostIfAbsent(category);
 
+        createDefaultSheet();
 
+        createDefaultComment(post);
+
+        createDefaultMenu();
+
+        eventPublisher.publishEvent(new LogEvent(this, user.getId().toString(), LogType.BLOG_INITIALIZED, "博客已成功初始化"));
+
+        return BaseResponse.ok("安装完成! ");
 
 
     }
@@ -148,7 +163,77 @@ public class InstallController {
 
     @Nullable
     private void createDefaultSheet(){
-        long publishedCount = shee
+        long publishedCount = sheetService.countByStatus(PostStatus.PUBLISHED);
+        if (publishedCount > 0){
+            return;
+        }
+
+        SheetParam sheetParam = new SheetParam();
+        sheetParam.setSlug("about");
+        sheetParam.setTitle("关于页面");
+        sheetParam.setStatus(PostStatus.PUBLISHED);
+        sheetParam.setOriginalContent("## 关于页面\n" +
+                "\n" +
+                "这是一个自定义页面，你可以在后台的 `页面` -> `所有页面` -> `自定义页面` 找到它，你可以用于新建关于页面、留言板页面等等。发挥你自己的想象力！\n" +
+                "\n" +
+                "> 这是一篇自动生成的页面，你可以在后台删除它。");
+        sheetService.createBy(sheetParam.convertTo(), false);
     }
+
+    @Nullable
+    private void createDefaultComment(@Nullable PostDetailVO post){
+        if (post == null){
+            return;
+        }
+        long commentCount = postCommentService.count();
+
+        if (commentCount > 0){
+            return;
+        }
+
+        PostComment comment = new PostComment();
+        comment.setAuthor("Halo");
+        comment.setAuthorUrl("https://halo.run");
+        comment.setContent("欢迎使用 Halo，这是你的第一条评论，头像来自 [Gravatar](https://cn.gravatar.com)，你也可以通过注册 [Gravatar](https://cn.gravatar.com) 来显示自己的头像。");
+        comment.setEmail("hi@halo.run");
+        comment.setPostId(post.getId());
+        postCommentService.create(comment);
+    }
+
+    private void createDefaultMenu(){
+        long menuCount = menuService.count();
+
+        if (menuCount > 0){
+            return;
+        }
+
+        MenuParam menuIndex = new MenuParam();
+
+        menuIndex.setName("首页");
+        menuIndex.setUrl("/");
+        menuIndex.setPriority(1);
+
+        menuService.create(menuIndex.convertTo());
+
+        MenuParam menuArchive = new MenuParam();
+
+        menuArchive.setName("文章归档");
+        menuArchive.setUrl("/archives");
+        menuArchive.setPriority(2);
+        menuService.create(menuArchive.convertTo());
+
+        MenuParam menuCategory = new MenuParam();
+        menuCategory.setName("默认分类");
+        menuCategory.setUrl("/categories/default");
+        menuCategory.setPriority(3);
+        menuService.create(menuCategory.convertTo());
+
+        MenuParam menuSheet = new MenuParam();
+        menuSheet.setName("关于页面");
+        menuSheet.setUrl("/s/about");
+        menuSheet.setPriority(4);
+        menuService.create(menuSheet.convertTo());
+    }
+
 
 }

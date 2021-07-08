@@ -28,6 +28,7 @@ public class ValidationUtils {
         return VALIDATOR;
     }
 
+    //obj就是要检查的安装参数
     public static void validate(Object obj, Class<?>... groups){
         Validator validator = getValidator();
 
