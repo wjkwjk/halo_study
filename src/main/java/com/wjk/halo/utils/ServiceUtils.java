@@ -39,6 +39,8 @@ public class ServiceUtils {
      * @param <D>
      * @return
      */
+
+    //以对象的key作为键，对象本身作为值存储
     @NonNull
     public static <ID, D> Map<ID, D> convertToMap(Collection<D> list, Function<D, ID> mappingFunction){
         if (CollectionUtils.isEmpty(list)){

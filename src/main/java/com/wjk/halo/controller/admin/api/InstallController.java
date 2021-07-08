@@ -62,13 +62,15 @@ public class InstallController {
     @CacheLock
     public BaseResponse<String> installBlog(@RequestBody InstallParam installParam){
 
+        //验证安装参数
         ValidationUtils.validate(installParam, CreateCheck.class);
 
+        //判断是否已安装
         boolean isInstalled = optionService.getByPropertyOrDefault(PrimaryProperties.IS_INSTALLED, Boolean.class, false);
-
         if (isInstalled){
             throw new BadRequestException("该博客已被初始化，不能再次安装");
         }
+
         initSettings(installParam);
 
         User user = createUser(installParam);
@@ -90,26 +92,22 @@ public class InstallController {
 
     }
 
-
+    //默认初始化
     private void initSettings(InstallParam installParam){
+        //存储博客的设置
         Map<PropertyEnum, String> properties = new HashMap<>(11);
         properties.put(PrimaryProperties.IS_INSTALLED, Boolean.TRUE.toString());
         properties.put(BlogProperties.BLOG_LOCATE, installParam.getLocate());
         properties.put(BlogProperties.BLOG_TITLE, installParam.getTitle());
         properties.put(BlogProperties.BLOG_URL, StringUtils.isBlank(installParam.getUrl()) ? optionService.getBlogBaseUrl() : installParam.getUrl());
-
         Long birthday = optionService.getByPropertyOrDefault(PrimaryProperties.BIRTHDAY, Long.class, 0L);
-
         if (birthday.equals(0L)){
             properties.put(PrimaryProperties.BIRTHDAY, String.valueOf(System.currentTimeMillis()));
         }
-
         Boolean globalAbsolutePathEnabled = optionService.getByPropertyOrDefault(OtherProperties.GLOBAL_ABSOLUTE_PATH_ENABLED, Boolean.class, null);
-
         if (globalAbsolutePathEnabled == null){
             properties.put(OtherProperties.GLOBAL_ABSOLUTE_PATH_ENABLED, Boolean.FALSE.toString());
         }
-
         optionService.saveProperties(properties);
     }
 

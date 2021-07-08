@@ -2,6 +2,7 @@ package com.wjk.halo.model.properties;
 
 public enum BlogProperties implements PropertyEnum{
 
+    //博客位于的地点
     BLOG_LOCATE("blog_locate", String.class, ""),
     BLOG_TITLE("blog_title", String.class, ""),
     BLOG_LOGO("blog_logo", String.class, ""),

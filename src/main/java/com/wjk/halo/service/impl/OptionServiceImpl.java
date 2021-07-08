@@ -177,6 +177,7 @@ public class OptionServiceImpl extends AbstractCrudService<Option, Integer> impl
         save(Collections.singletonMap(key, value));
     }
 
+    //以PropertyEnum枚举中的value(String)作为键，值还是从用户输入得到的String
     @Override
     @Transactional
     public void save(Map<String, Object> optionMap) {
@@ -184,6 +185,7 @@ public class OptionServiceImpl extends AbstractCrudService<Option, Integer> impl
             return;
         }
 
+        //以Option的key作为键，Option本身作为值
         Map<String, Option> optionKeyMap = ServiceUtils.convertToMap(listAll(), Option::getKey);
 
         List<Option> optionsToCreate = new LinkedList<>();
@@ -246,13 +248,17 @@ public class OptionServiceImpl extends AbstractCrudService<Option, Integer> impl
         save(property.getValue(), value);
     }
 
+    //参数为一个map，键为PropertyEnum枚举，值为String，是从用户输入得到的
     @Override
     public void saveProperties(Map<? extends PropertyEnum, String> properties) {
         if (CollectionUtils.isEmpty(properties)){
             return;
         }
         Map<String, Object> optionMap = new LinkedHashMap<>();
+
+        //以PropertyEnum枚举中的value(String)作为键，值还是从用户输入得到的String
         properties.forEach((property, value) -> optionMap.put(property.getValue(), value));
+        save(optionMap);
     }
 
     @Override

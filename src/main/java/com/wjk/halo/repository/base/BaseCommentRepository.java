@@ -3,10 +3,12 @@ package com.wjk.halo.repository.base;
 import com.wjk.halo.annotation.SensitiveConceal;
 import com.wjk.halo.model.entity.BaseComment;
 import com.wjk.halo.model.enums.CommentStatus;
+import com.wjk.halo.model.projection.CommentChildrenCountProjection;
 import com.wjk.halo.model.projection.CommentCountProjection;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
@@ -29,5 +31,13 @@ public interface BaseCommentRepository<COMMENT extends BaseComment> extends Base
     @NonNull
     @SensitiveConceal
     Page<COMMENT> findAllByStatus(@Nullable CommentStatus status, @NonNull Pageable pageable);
+
+    @Query("select new com.wjk.halo.model.projection.CommentChildrenCountProjection(count(comment.id), comment.parentId) " +
+            "from BaseComment comment " +
+            "where comment.parentId in ?1 " +
+            "group by comment.parentId")
+    @NonNull
+    List<CommentChildrenCountProjection> findDirectChildrenCount(@NonNull Collection<Long> commentIds);
+
 
 }
