@@ -178,6 +178,7 @@ public class OptionServiceImpl extends AbstractCrudService<Option, Integer> impl
     }
 
     //以PropertyEnum枚举中的value(String)作为键，值还是从用户输入得到的String
+    //optionMap是用户安装时的用户信息，包装成PropertyEnum
     @Override
     @Transactional
     public void save(Map<String, Object> optionMap) {
@@ -186,6 +187,7 @@ public class OptionServiceImpl extends AbstractCrudService<Option, Integer> impl
         }
 
         //以Option的key作为键，Option本身作为值
+        //这是数据库中已经存在的安装信息
         Map<String, Option> optionKeyMap = ServiceUtils.convertToMap(listAll(), Option::getKey);
 
         List<Option> optionsToCreate = new LinkedList<>();
@@ -193,25 +195,30 @@ public class OptionServiceImpl extends AbstractCrudService<Option, Integer> impl
 
         optionMap.forEach((key, value) -> {
             Option oldOption = optionKeyMap.get(key);
+            //如果数据库中不存在对应的值，或者数据库中的值与用户提供的值不相等
             if (oldOption == null || !StringUtils.equals(oldOption.getValue(), value.toString())){
+                //验证用户提供的信息格式
                 OptionParam optionParam = new OptionParam();
                 optionParam.setKey(key);
                 optionParam.setValue(value.toString());
                 ValidationUtils.validate(optionParam);
 
                 if (oldOption == null){
+                    //如果用户之间没有安装过
                     optionsToCreate.add(optionParam.convertTo());
                 }else if (!StringUtils.equals(oldOption.getValue(), value.toString())){
+                    //用户已经安装过，则先更新
                     optionParam.update(oldOption);
                     optionsToUpdate.add(oldOption);
                 }
             }
         });
 
+        //保存至数据库
         updateInBatch(optionsToUpdate);
 
         createInBatch(optionsToCreate);
-
+        //如果数据库中的数据与用户提供的数据完全相同
         if (!CollectionUtils.isEmpty(optionsToUpdate) || !CollectionUtils.isEmpty(optionsToCreate)){
             publishOptionUpdateEvent();
         }
@@ -222,7 +229,9 @@ public class OptionServiceImpl extends AbstractCrudService<Option, Integer> impl
     }
 
     private void publishOptionUpdateEvent(){
+        //刷新数据库
         flush();
+        //清理缓存
         cleanCache();
         eventPublisher.publishEvent(new OptionUpdateEvent(this));
     }

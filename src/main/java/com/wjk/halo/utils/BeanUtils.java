@@ -27,6 +27,7 @@ public class BeanUtils {
         return getNullPropertyNameSet(source).toArray(new String[0]);
     }
 
+    //获取name集合
     @NonNull
     private static Set<String> getNullPropertyNameSet(@NonNull Object source){
         BeanWrapperImpl beanWrapper = new BeanWrapperImpl(source);

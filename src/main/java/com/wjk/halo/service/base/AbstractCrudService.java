@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
 import java.lang.reflect.ParameterizedType;
@@ -90,4 +91,6 @@ public abstract class AbstractCrudService<DOMAIN, ID> implements CrudService<DOM
         }
         repository.deleteInBatch(domains);
     }
+
+
 }

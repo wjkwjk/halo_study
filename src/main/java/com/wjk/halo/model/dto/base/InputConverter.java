@@ -9,7 +9,10 @@ import java.lang.reflect.ParameterizedType;
 import java.util.Objects;
 
 public interface InputConverter <DOMAIN>{
+
+    //转换到domain
     default DOMAIN convertTo(){
+        //获得参数类型
         ParameterizedType currentType = parameterizedType();
 
         Objects.requireNonNull(currentType, "Cannot fetch actual type because parameterized type is null");

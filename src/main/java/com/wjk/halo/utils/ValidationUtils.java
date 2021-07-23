@@ -36,7 +36,7 @@ public class ValidationUtils {
         //使用单例模式生成唯一验证器
         Validator validator = getValidator();
 
-        //Iterable是集合的顶级接口，Collection继承与Iterable接口
+        //Iterable是集合的顶级接口，Collection继承于Iterable接口
         if (obj instanceof Iterable){
             //验证Iterable对象
             validate((Iterable<?>) obj, groups);

@@ -1,5 +1,7 @@
 package com.wjk.halo.service.impl;
 
+import com.wjk.halo.exception.AlreadyExistsException;
+import com.wjk.halo.exception.NotFoundException;
 import com.wjk.halo.model.dto.CategoryDTO;
 import com.wjk.halo.model.entity.Category;
 import com.wjk.halo.repository.CategoryRepository;
@@ -8,8 +10,11 @@ import com.wjk.halo.service.CategoryService;
 import com.wjk.halo.service.OptionService;
 import com.wjk.halo.service.PostCategoryService;
 import com.wjk.halo.service.base.AbstractCrudService;
+import com.wjk.halo.utils.ServiceUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
 import java.util.Collections;
@@ -31,6 +36,30 @@ public class CategoryServiceImpl extends AbstractCrudService<Category, Integer> 
         this.categoryRepository = categoryRepository;
         this.postCategoryService = postCategoryService;
         this.optionService = optionService;
+    }
+
+    //判断分类是否已经存在或者类别的父类是否存在，创建类别，即将类别保存在数据库中
+    @Override
+    @Transactional
+    public Category create(Category category) {
+        Assert.notNull(category, "Category to create must not be null");
+
+        long count = categoryRepository.countByName(category.getName());
+
+        if (count>0){
+            log.error("Category has exist already: [{}]", category);
+            throw new AlreadyExistsException("该分类已存在");
+        }
+
+        if (!ServiceUtils.isEmptyId(category.getParentId())){
+            count = categoryRepository.countById(category.getParentId());
+
+            if (count == 0){
+                log.error("Parent category with id: [{}] was not found, category: [{}]", category.getParentId(), category);
+                throw new NotFoundException("Parent category with id = " + category.getParentId() + " was not found");
+            }
+        }
+        return super.create(category);
     }
 
     @Override

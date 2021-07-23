@@ -62,7 +62,7 @@ public class InstallController {
     @CacheLock
     public BaseResponse<String> installBlog(@RequestBody InstallParam installParam){
 
-        //验证安装参数
+        //验证安装参数格式
         ValidationUtils.validate(installParam, CreateCheck.class);
 
         //判断是否已安装
@@ -100,6 +100,7 @@ public class InstallController {
         properties.put(BlogProperties.BLOG_LOCATE, installParam.getLocate());
         properties.put(BlogProperties.BLOG_TITLE, installParam.getTitle());
         properties.put(BlogProperties.BLOG_URL, StringUtils.isBlank(installParam.getUrl()) ? optionService.getBlogBaseUrl() : installParam.getUrl());
+        //将当前时间设置为博客生日
         Long birthday = optionService.getByPropertyOrDefault(PrimaryProperties.BIRTHDAY, Long.class, 0L);
         if (birthday.equals(0L)){
             properties.put(PrimaryProperties.BIRTHDAY, String.valueOf(System.currentTimeMillis()));
@@ -117,6 +118,7 @@ public class InstallController {
             userService.setPassword(user, installParam.getPassword());
             return userService.update(user);
         }).orElseGet(() -> {
+            //如果用户不存在，获取email在gravator上的对应的头像
             String gravator = "//cn.gravator.com/avator/" + SecureUtil.md5(installParam.getEmail())  + "?s=256&d=mm";
             installParam.setAvatar(gravator);
             return userService.createBy(installParam);

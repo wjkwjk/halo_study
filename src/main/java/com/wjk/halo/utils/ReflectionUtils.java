@@ -23,6 +23,7 @@ public class ReflectionUtils {
         return value;
     }
 
+    //ParameterizedType：泛型，带有<>的类型
     @Nullable
     public static ParameterizedType getParameterizedType(@NonNull Class<?> superType, Type... genericTypes){
         ParameterizedType currentType = null;
@@ -44,7 +45,7 @@ public class ReflectionUtils {
         if (implementationClass == null){
             return null;
         }
-
+        //implementationClass.getGenericInterfaces()：返回implementationClass直接实现的接口，返回值为一个数组
         ParameterizedType currentType = getParameterizedType(interfaceType, implementationClass.getGenericInterfaces());
 
         if (currentType != null){
