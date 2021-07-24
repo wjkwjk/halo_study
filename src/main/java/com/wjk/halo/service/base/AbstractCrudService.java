@@ -1,5 +1,6 @@
 package com.wjk.halo.service.base;
 
+import com.wjk.halo.exception.NotFoundException;
 import com.wjk.halo.repository.base.BaseRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -90,6 +91,18 @@ public abstract class AbstractCrudService<DOMAIN, ID> implements CrudService<DOM
             return;
         }
         repository.deleteInBatch(domains);
+    }
+
+    @Override
+    public boolean existById(ID id) {
+        return repository.existsById(id);
+    }
+
+    @Override
+    public void mustExistById(ID id) {
+        if (!existById(id)){
+            throw new NotFoundException(domainName + " was not exist");
+        }
     }
 
 

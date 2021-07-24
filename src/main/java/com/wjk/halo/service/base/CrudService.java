@@ -47,4 +47,8 @@ public interface CrudService<DOMAIN, ID> {
     @Transactional
     void removeAll(@NonNull Collection<DOMAIN> domains);
 
+    boolean existById(@NonNull ID id);
+
+    void mustExistById(@NonNull ID id);
+
 }

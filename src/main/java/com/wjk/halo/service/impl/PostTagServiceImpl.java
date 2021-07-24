@@ -38,7 +38,7 @@ public class PostTagServiceImpl extends AbstractCrudService<PostTag, Integer> im
         if (CollectionUtils.isEmpty(tagIds)){
             return Collections.emptyList();
         }
-
+        //将文章与每一个tag关联
         List<PostTag> postTagsStaging = tagIds.stream().map(tagId -> {
             PostTag postTag = new PostTag();
             postTag.setPostId(postId);
@@ -49,8 +49,9 @@ public class PostTagServiceImpl extends AbstractCrudService<PostTag, Integer> im
         List<PostTag> postTagsToRemove = new LinkedList<>();
         List<PostTag> postTagsToCreate = new LinkedList<>();
 
+        //找到与当前文章关联的tag
         List<PostTag> postTags = postTagRepository.findAllByPostId(postId);
-
+        //如果某个post-tag不存在，则删除
         postTags.forEach(postTag -> {
             if (!postTagsStaging.contains(postTag)){
                 postTagsToRemove.add(postTag);

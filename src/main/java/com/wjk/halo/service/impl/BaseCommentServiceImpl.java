@@ -1,25 +1,37 @@
 package com.wjk.halo.service.impl;
 
+import cn.hutool.core.util.URLUtil;
+import cn.hutool.extra.servlet.ServletUtil;
+import com.sun.org.apache.xpath.internal.operations.Bool;
+import com.wjk.halo.event.comment.CommentNewEvent;
+import com.wjk.halo.event.comment.CommentReplyEvent;
 import com.wjk.halo.model.dto.BaseCommentDTO;
 import com.wjk.halo.model.entity.BaseComment;
 import com.wjk.halo.model.enums.CommentStatus;
 import com.wjk.halo.model.params.BaseCommentParam;
 import com.wjk.halo.model.params.CommentQuery;
+import com.wjk.halo.model.properties.CommentProperties;
 import com.wjk.halo.model.vo.BaseCommentVO;
 import com.wjk.halo.model.vo.BaseCommentWithParentVO;
 import com.wjk.halo.model.vo.CommentWithHasChildrenVO;
 import com.wjk.halo.repository.base.BaseCommentRepository;
 import com.wjk.halo.repository.base.BaseRepository;
+import com.wjk.halo.security.authentication.Authentication;
+import com.wjk.halo.security.context.SecurityContextHolder;
 import com.wjk.halo.service.OptionService;
 import com.wjk.halo.service.UserService;
 import com.wjk.halo.service.base.AbstractCrudService;
 import com.wjk.halo.service.base.BaseCommentService;
 import com.wjk.halo.utils.ServiceUtils;
+import com.wjk.halo.utils.ServletUtils;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.codec.digest.DigestUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpHeaders;
 
 import java.util.Collection;
 import java.util.Comparator;
@@ -107,7 +119,50 @@ public abstract class BaseCommentServiceImpl<COMMENT extends BaseComment> extend
 
     @Override
     public COMMENT create(COMMENT comment) {
-        return super.create(comment);
+        if (!ServiceUtils.isEmptyId(comment.getPostId())){
+            validateTarget(comment.getPostId());
+        }
+
+        if (!ServiceUtils.isEmptyId(comment.getParentId())){
+            mustExistById(comment.getParentId());
+        }
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (comment.getIpAddress() == null){
+            comment.setIpAddress(ServletUtils.getRequestIp());
+        }
+
+        if (comment.getUserAgent() == null){
+            comment.setUserAgent(ServletUtils.getHeaderIgnoreCase(HttpHeaders.USER_AGENT));
+        }
+
+        if (comment.getGravatarMd5() == null){
+            comment.setGravatarMd5(DigestUtils.md5Hex(comment.getEmail()));
+        }
+
+        if (StringUtils.isNotEmpty(comment.getAuthorUrl())){
+            comment.setAuthorUrl(URLUtil.normalize(comment.getAuthorUrl()));
+        }
+
+        if (authentication != null){
+            comment.setIsAdmin(true);
+            comment.setStatus(CommentStatus.PUBLISHED);
+        }else {
+            Boolean needAudit = optionService.getByPropertyOrDefault(CommentProperties.NEW_NEED_CHECK, Boolean.class, true);
+            comment.setStatus(needAudit ? CommentStatus.AUDITING : CommentStatus.PUBLISHED);
+        }
+
+        COMMENT createdComment = super.create(comment);
+
+        if (ServiceUtils.isEmptyId(createdComment.getParentId())){
+            if (authentication == null){
+                eventPublisher.publishEvent(new CommentNewEvent(this, createdComment.getId()));
+            }
+        }else {
+            eventPublisher.publishEvent(new CommentReplyEvent(this, createdComment.getId()));
+        }
+        return createdComment;
     }
 
     @Override

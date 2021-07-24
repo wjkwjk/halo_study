@@ -48,9 +48,10 @@ public class PostServiceImpl extends BasePostServiceImpl<Post> implements PostSe
         this.postCommentService = postCommentService;
     }
 
-
+    //将post,tag,category整合，转变为PostDeatilVO
     @NonNull
     private PostDetailVO convertTo(@NonNull Post post, @Nullable List<Tag> tags, @Nullable List<Category> categories, List<PostMeta> postMetaList){
+        //先复制post的属性到postdetailvo
         PostDetailVO postDetailVO = new PostDetailVO().convertFrom(post);
 
         if (StringUtils.isBlank(postDetailVO.getSummary())){
@@ -152,30 +153,29 @@ public class PostServiceImpl extends BasePostServiceImpl<Post> implements PostSe
 
 
     private PostDetailVO createOrUpdate(@NonNull Post post, Set<Integer> tagIds, Set<Integer> categoryIds, Set<PostMeta> metas){
+        //创建或者更新文章
         post = super.createOrUpdateBy(post);
-
-        postTagService.removeByTagId(post.getId());
 
         postTagService.removeByPostId(post.getId());
 
         postCategoryService.removeByPostId(post.getId());
 
+        //列出所有tag
         List<Tag> tags = tagService.listAllByIds(tagIds);
 
+        //列出所有category
         List<Category> categories = categoryService.listAllByIds(categoryIds);
 
         List<PostTag> postTags = postTagService.mergeOrCreateByIfAbsent(post.getId(), ServiceUtils.fetchProperty(tags, Tag::getId));
-
         log.debug("Created post tags: [{}]", postTags);
 
         List<PostCategory> postCategories = postCategoryService.mergeOrCreateByIfAbsent(post.getId(), ServiceUtils.fetchProperty(categories, Category::getId));
-
         log.debug("Created post categories: [{}]", postCategories);
 
         List<PostMeta> postMetaList = postMetaService.createOrUpdateByPostId(post.getId(), metas);
-
         log.debug("Created post metas: [{}]", postMetaList);
 
+        //将信息转变为post detail vo
         return convertTo(post, tags, categories, postMetaList);
 
     }

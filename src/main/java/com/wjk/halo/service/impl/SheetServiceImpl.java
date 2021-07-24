@@ -37,6 +37,7 @@ public class SheetServiceImpl extends BasePostServiceImpl<Sheet> implements Shee
 
     @Override
     public Sheet createBy(Sheet sheet, boolean autoSave) {
+        //没有则创建，否则则更新
         Sheet createSheet = createOrUpdateBy(sheet);
         if (!autoSave){
             LogEvent logEvent = new LogEvent(this, createSheet.getId().toString(), LogType.SHEET_PUBLISHED, createSheet.getTitle());

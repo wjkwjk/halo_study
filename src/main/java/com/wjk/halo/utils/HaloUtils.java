@@ -68,7 +68,7 @@ public class HaloUtils {
         return StringUtils.remove(UUID.randomUUID().toString(),'-');
     }
 
-
+    //删除html语言的标签
     public static String cleanHtmlTag(String content){
         if (StringUtils.isEmpty(content)){
             return StringUtils.EMPTY;

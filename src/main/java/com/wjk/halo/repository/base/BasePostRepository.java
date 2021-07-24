@@ -8,4 +8,8 @@ public interface BasePostRepository<POST extends BasePost> extends BaseRepositor
 
     long countByStatus(@NonNull PostStatus status);
 
+    boolean existsBySlug(@NonNull String slug);
+
+    boolean existByIdNotAndSlug(@NonNull Integer id, @NonNull String slug);
+
 }

@@ -139,6 +139,7 @@ public class InstallController {
         return categoryService.create(category.convertTo());
     }
 
+    //创建默认文章，如果已存在文章，则不创建
     @Nullable
     private PostDetailVO createDefaultPostIfAbsent(@Nullable Category category){
         long publishedCount = postService.countByStatus(PostStatus.PUBLISHED);
@@ -212,7 +213,7 @@ public class InstallController {
         menuIndex.setName("首页");
         menuIndex.setUrl("/");
         menuIndex.setPriority(1);
-
+        //数据库保存
         menuService.create(menuIndex.convertTo());
 
         MenuParam menuArchive = new MenuParam();

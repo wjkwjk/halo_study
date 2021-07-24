@@ -1,12 +1,16 @@
 package com.wjk.halo.utils;
 
+import cn.hutool.extra.servlet.ServletUtil;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.util.CollectionUtils;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -92,5 +96,6 @@ public class ServiceUtils {
     public static Pageable buildLatestPageable(int top, @NonNull String sortProperty){
         return PageRequest.of(0, top, Sort.by(Sort.Direction.DESC, sortProperty));
     }
+
 
 }
