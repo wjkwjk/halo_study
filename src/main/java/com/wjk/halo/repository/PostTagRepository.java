@@ -12,7 +12,7 @@ public interface PostTagRepository extends BaseRepository<PostTag, Integer> {
     List<PostTag> deleteByTagId(@NonNull Integer tagId);
 
     @NonNull
-    List<PostTag> deletePostId(@NonNull Integer postId);
+    List<PostTag> deleteByPostId(@NonNull Integer postId);
 
     @NonNull
     List<PostTag> findAllByPostId(@NonNull Integer postId);

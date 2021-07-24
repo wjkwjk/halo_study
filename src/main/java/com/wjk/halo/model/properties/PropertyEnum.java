@@ -147,4 +147,13 @@ public interface PropertyEnum extends ValueEnum<String> {
     @Nullable
     String defaultValue();
 
+    @Nullable
+    default <T> T defaultValue(Class<T> propertyType){
+        String defaultValue = defaultValue();
+        if (defaultValue == null){
+            return null;
+        }
+        return PropertyEnum.convertTo(defaultValue, propertyType);
+    }
+
 }

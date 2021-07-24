@@ -6,6 +6,7 @@ import com.wjk.halo.model.entity.*;
 import com.wjk.halo.model.enums.LogType;
 import com.wjk.halo.model.enums.PostPermalinkType;
 import com.wjk.halo.model.vo.PostDetailVO;
+import com.wjk.halo.repository.PostRepository;
 import com.wjk.halo.repository.base.BasePostRepository;
 import com.wjk.halo.service.*;
 import com.wjk.halo.utils.ServiceUtils;
@@ -35,9 +36,20 @@ public class PostServiceImpl extends BasePostServiceImpl<Post> implements PostSe
     private final PostMetaService postMetaService;
     private final ApplicationEventPublisher eventPublisher;
     private final PostCommentService postCommentService;
+    private final PostRepository postRepository;
 
-    public PostServiceImpl(BasePostRepository<Post> basePostRepository, OptionService optionService, PostTagService postTagService, PostCategoryService postCategoryService, TagService tagService, CategoryService categoryService, PostMetaService postMetaService, ApplicationEventPublisher eventPublisher, PostCommentService postCommentService) {
+    public PostServiceImpl(BasePostRepository<Post> basePostRepository,
+                           OptionService optionService,
+                           PostRepository postRepository,
+                           TagService tagService,
+                           CategoryService categoryService,
+                           PostTagService postTagService,
+                           PostCategoryService postCategoryService,
+                           PostCommentService postCommentService,
+                           ApplicationEventPublisher eventPublisher,
+                           PostMetaService postMetaService) {
         super(basePostRepository, optionService);
+        this.postRepository = postRepository;
         this.optionService = optionService;
         this.postTagService = postTagService;
         this.postCategoryService = postCategoryService;

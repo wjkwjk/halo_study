@@ -2,6 +2,7 @@ package com.wjk.halo.service.impl;
 
 import com.wjk.halo.cache.AbstractStringCacheStore;
 import com.wjk.halo.event.options.OptionUpdateEvent;
+import com.wjk.halo.exception.MissingPropertyException;
 import com.wjk.halo.model.entity.Option;
 import com.wjk.halo.model.enums.PostPermalinkType;
 import com.wjk.halo.model.params.OptionParam;
@@ -62,6 +63,11 @@ public class OptionServiceImpl extends AbstractCrudService<Option, Integer> impl
     public <T> T getByPropertyOrDefault(PropertyEnum property, Class<T> propertyType, T defaultValue) {
         // 调用getByProperty进行查找，如果查找结果为空，则返回默认值
         return getByProperty(property, propertyType).orElse(defaultValue);
+    }
+
+    @Override
+    public <T> T getByPropertyOrDefault(PropertyEnum property, Class<T> propertyType) {
+        return getByProperty(property, propertyType).orElse(property.defaultValue(propertyType));
     }
 
     /**
@@ -310,6 +316,16 @@ public class OptionServiceImpl extends AbstractCrudService<Option, Integer> impl
     @Override
     public String getArchivesPrefix() {
         return getByPropertyOrDefault(PermalinkProperties.ARCHIVES_PREFIX, String.class, PermalinkProperties.ARCHIVES_PREFIX.defaultValue());
+    }
+
+    @Override
+    public Object getByPropertyOfNonNull(PropertyEnum property) {
+        return getByKeyOfNonNull(property.getValue());
+    }
+
+    @Override
+    public Object getByKeyOfNonNull(String key) {
+        return getByKey(key).orElseThrow(()->new MissingPropertyException("You have to config " + key + " setting"));
     }
 
 

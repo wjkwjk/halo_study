@@ -1,6 +1,6 @@
 package com.wjk.halo.service.impl;
 
-import com.wjk.halo.model.entity.CommonBlackList;
+import com.wjk.halo.model.entity.CommentBlackList;
 import com.wjk.halo.model.enums.CommentViolationTypeEnum;
 import com.wjk.halo.model.properties.CommentProperties;
 import com.wjk.halo.repository.CommentBlackListRepository;
@@ -18,7 +18,7 @@ import java.util.Optional;
 
 @Service
 @Slf4j
-public class CommentBlackListServiceImpl extends AbstractCrudService<CommonBlackList, Long> implements CommentBlackListService {
+public class CommentBlackListServiceImpl extends AbstractCrudService<CommentBlackList, Long> implements CommentBlackListService {
 
     private final CommentBlackListRepository commentBlackListRepository;
     private final PostCommentRepository postCommentRepository;
@@ -33,7 +33,7 @@ public class CommentBlackListServiceImpl extends AbstractCrudService<CommonBlack
 
     @Override
     public CommentViolationTypeEnum commentsBanStatus(String ipAddress) {
-        Optional<CommonBlackList> blackList = commentBlackListRepository.findByIpAddress(ipAddress);
+        Optional<CommentBlackList> blackList = commentBlackListRepository.findByIpAddress(ipAddress);
         LocalDateTime now = LocalDateTime.now();
         Date endTime = new Date(DateTimeUtils.toEpochMilli(now));
         Integer banTime = optionService.getByPropertyOrDefault(CommentProperties.COMMENT_BAN_TIME, Integer.class, 10);
@@ -44,7 +44,7 @@ public class CommentBlackListServiceImpl extends AbstractCrudService<CommonBlack
             update(now, blackList.get(), banTime);
             return CommentViolationTypeEnum.FREQUENTLY;
         }else if (isPresent){
-            CommonBlackList commentBlackList = CommonBlackList
+            CommentBlackList commentBlackList = CommentBlackList
                     .builder()
                     .banTime(getBanTime(now, banTime))
                     .ipAddress(ipAddress)
@@ -55,7 +55,7 @@ public class CommentBlackListServiceImpl extends AbstractCrudService<CommonBlack
         return CommentViolationTypeEnum.NORMAL;
     }
 
-    private void update(LocalDateTime localDateTime, CommonBlackList blackList, Integer banTime){
+    private void update(LocalDateTime localDateTime, CommentBlackList blackList, Integer banTime){
         blackList.setBanTime(getBanTime(localDateTime, banTime));
         int updateResult = commentBlackListRepository.updateByIpAddress(blackList);
         Optional.of(updateResult)

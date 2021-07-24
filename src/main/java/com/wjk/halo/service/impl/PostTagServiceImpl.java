@@ -30,7 +30,7 @@ public class PostTagServiceImpl extends AbstractCrudService<PostTag, Integer> im
 
     @Override
     public List<PostTag> removeByPostId(Integer postId) {
-        return postTagRepository.deletePostId(postId);
+        return postTagRepository.deleteByPostId(postId);
     }
 
     @Override

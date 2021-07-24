@@ -1,10 +1,12 @@
 package com.wjk.halo.controller.admin.api;
 
+import com.wjk.halo.annotation.DisableOnCondition;
 import com.wjk.halo.cache.lock.CacheLock;
 import com.wjk.halo.model.dto.LoginPreCheckDTO;
 import com.wjk.halo.model.entity.User;
 import com.wjk.halo.model.enums.MFAType;
 import com.wjk.halo.model.params.LoginParam;
+import com.wjk.halo.model.params.ResetPasswordParam;
 import com.wjk.halo.model.properties.PrimaryProperties;
 import com.wjk.halo.security.token.AuthToken;
 import com.wjk.halo.service.AdminService;
@@ -46,4 +48,18 @@ public class AdminController {
     public AuthToken auth(@RequestBody @Valid LoginParam loginParam){
         return adminService.authCodeCheck(loginParam);
     }
+
+    @PostMapping("logout")
+    @CacheLock(autoDelete = false)
+    public void logout(){
+        adminService.clearToken();
+    }
+
+    @PostMapping("password/code")
+    @CacheLock(autoDelete = false)
+    @DisableOnCondition
+    public void sendResetCode(@RequestBody @Valid ResetPasswordParam param){
+        adminService.sendResetPasswordCode(param);
+    }
+
 }

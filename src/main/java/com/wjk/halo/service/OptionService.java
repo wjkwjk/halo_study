@@ -28,6 +28,8 @@ public interface OptionService extends CrudService<Option, Integer> {
      */
     <T> T getByPropertyOrDefault(@NonNull PropertyEnum property, @NonNull Class<T> propertyType, T defaultValue);
 
+    <T> T getByPropertyOrDefault(@NonNull PropertyEnum property, @NonNull Class<T> propertyType);
+
     <T> Optional<T> getByProperty(@NonNull PropertyEnum property, @NonNull Class<T> propertyType);
 
     Optional<Object> getByProperty(@NonNull PropertyEnum property);
@@ -77,4 +79,11 @@ public interface OptionService extends CrudService<Option, Integer> {
     <T extends Enum<T>> Optional<T> getEnumByProperty(@NonNull PropertyEnum property, @NonNull Class<T> valueType);
 
     String getArchivesPrefix();
+
+    @NonNull
+    Object getByPropertyOfNonNull(@NonNull PropertyEnum property);
+
+    @NonNull
+    Object getByKeyOfNonNull(@NonNull String key);
+
 }

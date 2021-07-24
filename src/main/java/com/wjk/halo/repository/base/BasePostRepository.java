@@ -10,6 +10,6 @@ public interface BasePostRepository<POST extends BasePost> extends BaseRepositor
 
     boolean existsBySlug(@NonNull String slug);
 
-    boolean existByIdNotAndSlug(@NonNull Integer id, @NonNull String slug);
+    boolean existsByIdNotAndSlug(@NonNull Integer id, @NonNull String slug);
 
 }

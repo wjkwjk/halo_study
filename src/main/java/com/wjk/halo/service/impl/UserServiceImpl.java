@@ -1,6 +1,7 @@
 package com.wjk.halo.service.impl;
 
 import cn.hutool.crypto.digest.BCrypt;
+import com.wjk.halo.exception.ServiceException;
 import com.wjk.halo.event.logger.LogEvent;
 import com.wjk.halo.event.user.UserUpdateEvent;
 import com.wjk.halo.exception.ForbiddenException;
@@ -73,6 +74,13 @@ public class UserServiceImpl extends AbstractCrudService<User, Integer> implemen
         User user = userParam.convertTo();
         setPassword(user, userParam.getPassword());
         return create(user);
+    }
+
+    @Override
+    public boolean verifyUser(String username, String password) {
+
+        User user = getCurrentUser().orElseThrow(() -> new ServiceException("未查询到博主信息"));
+        return user.getUsername().equals(username) && user.getEmail().equals(password);
     }
 
     @Override

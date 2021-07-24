@@ -13,6 +13,8 @@ public enum LogType implements ValueEnum<Integer>{
     PROFILE_UPDATED(45),
 
     SHEET_PUBLISHED(50),
+
+    LOGGED_OUT(30)
     ;
 
     private final Integer value;

@@ -2,6 +2,7 @@ package com.wjk.halo.service;
 
 import com.wjk.halo.model.entity.User;
 import com.wjk.halo.model.params.LoginParam;
+import com.wjk.halo.model.params.ResetPasswordParam;
 import com.wjk.halo.security.token.AuthToken;
 import org.springframework.lang.NonNull;
 
@@ -17,5 +18,9 @@ public interface AdminService {
 
     @NonNull
     AuthToken authCodeCheck(@NonNull LoginParam loginParam);
+
+    void clearToken();
+
+    void sendResetPasswordCode(@NonNull ResetPasswordParam param);
 
 }

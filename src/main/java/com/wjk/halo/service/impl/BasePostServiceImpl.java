@@ -96,7 +96,7 @@ public abstract class BasePostServiceImpl<POST extends BasePost> extends Abstrac
             exist = basePostRepository.existsBySlug(post.getSlug());
         }else {
             //更新别名
-            exist = basePostRepository.existByIdNotAndSlug(post.getId(), post.getSlug());
+            exist = basePostRepository.existsByIdNotAndSlug(post.getId(), post.getSlug());
         }
 
         if (exist){
