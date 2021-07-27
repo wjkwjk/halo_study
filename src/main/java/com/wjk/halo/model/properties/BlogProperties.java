@@ -26,16 +26,16 @@ public enum BlogProperties implements PropertyEnum{
 
     @Override
     public String getValue() {
-        return null;
+        return value;
     }
 
     @Override
     public Class<?> getType() {
-        return null;
+        return type;
     }
 
     @Override
     public String defaultValue() {
-        return null;
+        return defaultValue;
     }
 }

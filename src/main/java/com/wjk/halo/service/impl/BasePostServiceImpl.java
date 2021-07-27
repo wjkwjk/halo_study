@@ -19,6 +19,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.lang.NonNull;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -68,6 +69,16 @@ public abstract class BasePostServiceImpl<POST extends BasePost> extends Abstrac
         post.setEditTime(DateUtils.now());
         return update(post);
 
+    }
+
+    @Override
+    public long countVisit() {
+        return Optional.ofNullable(basePostRepository.countVisit()).orElse(0L);
+    }
+
+    @Override
+    public long countLike() {
+        return Optional.ofNullable(basePostRepository.countLike()).orElse(0L);
     }
 
     @NonNull

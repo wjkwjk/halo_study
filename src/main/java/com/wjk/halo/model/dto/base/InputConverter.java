@@ -14,7 +14,7 @@ public interface InputConverter <DOMAIN>{
     default DOMAIN convertTo(){
         //获得参数类型
         ParameterizedType currentType = parameterizedType();
-
+        //空指针检查
         Objects.requireNonNull(currentType, "Cannot fetch actual type because parameterized type is null");
 
         Class<DOMAIN> domainClass = (Class<DOMAIN>) currentType.getActualTypeArguments()[0];

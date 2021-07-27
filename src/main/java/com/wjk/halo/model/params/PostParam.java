@@ -4,11 +4,14 @@ import com.wjk.halo.model.dto.base.InputConverter;
 import com.wjk.halo.model.entity.Post;
 import com.wjk.halo.model.enums.PostEditorType;
 import com.wjk.halo.model.enums.PostStatus;
+import com.wjk.halo.utils.SlugUtils;
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
+import java.lang.reflect.ParameterizedType;
 import java.util.Date;
 import java.util.Set;
 
@@ -55,4 +58,37 @@ public class PostParam implements InputConverter<Post> {
     private Set<Integer> categoryIds;
 
     private Set<PostMetaParam> metas;
+
+    @Override
+    public Post convertTo() {
+        slug = StringUtils.isBlank(slug) ? SlugUtils.slug(title) : SlugUtils.slug(slug);
+
+        if (null == thumbnail){
+            thumbnail = "";
+        }
+
+        if (null == editorType){
+            editorType = PostEditorType.MARKDOWN;
+        }
+
+        return InputConverter.super.convertTo();
+
+    }
+
+
+    @Override
+    public void update(Post post) {
+        slug = StringUtils.isBlank(slug) ? SlugUtils.slug(title) : SlugUtils.slug(slug);
+
+        if (null == thumbnail) {
+            thumbnail = "";
+        }
+
+        if (null == editorType) {
+            editorType = PostEditorType.MARKDOWN;
+        }
+
+        InputConverter.super.update(post);
+    }
+
 }

@@ -86,4 +86,6 @@ public interface OptionService extends CrudService<Option, Integer> {
     @NonNull
     Object getByKeyOfNonNull(@NonNull String key);
 
+    long getBirthday();
+
 }

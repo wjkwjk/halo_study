@@ -2,7 +2,9 @@ package com.wjk.halo.controller.admin.api;
 
 import com.wjk.halo.annotation.DisableOnCondition;
 import com.wjk.halo.cache.lock.CacheLock;
+import com.wjk.halo.model.dto.EnvironmentDTO;
 import com.wjk.halo.model.dto.LoginPreCheckDTO;
+import com.wjk.halo.model.dto.StatisticDTO;
 import com.wjk.halo.model.entity.User;
 import com.wjk.halo.model.enums.MFAType;
 import com.wjk.halo.model.params.LoginParam;
@@ -61,5 +63,30 @@ public class AdminController {
     public void sendResetCode(@RequestBody @Valid ResetPasswordParam param){
         adminService.sendResetPasswordCode(param);
     }
+
+    @PutMapping("password/reset")
+    @CacheLock(autoDelete = false)
+    @DisableOnCondition
+    public void resetPassword(@RequestBody @Valid ResetPasswordParam param){
+        adminService.resetPasswordByCode(param);
+    }
+
+    @PostMapping("refresh/{refreshToken}")
+    @CacheLock(autoDelete = false)
+    public AuthToken refresh(@PathVariable("refreshToken") String refreshToken){
+        return adminService.refreshToken(refreshToken);
+    }
+
+    @GetMapping("counts")
+    @Deprecated
+    public StatisticDTO getCount(){
+        return adminService.getCount();
+    }
+
+    @GetMapping("environments")
+    public EnvironmentDTO getEnvironments(){
+        return adminService.getEnvironments();
+    }
+
 
 }

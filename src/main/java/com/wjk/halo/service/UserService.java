@@ -38,4 +38,5 @@ public interface UserService extends CrudService<User, Integer> {
 
     boolean verifyUser(@NonNull String username, @NonNull String password);
 
+
 }

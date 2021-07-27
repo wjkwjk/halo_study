@@ -1,10 +1,18 @@
 package com.wjk.halo.model.properties;
 
+import static com.wjk.halo.model.support.HaloConst.DEFAULT_THEME_ID;
+
 public enum PrimaryProperties implements PropertyEnum{
 
     IS_INSTALLED("is_installed", Boolean.class, "false"),
 
-    BIRTHDAY("birthday", Long.class, "")
+    THEME("theme", String.class, DEFAULT_THEME_ID),
+
+    BIRTHDAY("birthday", Long.class, ""),
+
+    DEV_MODE("developer_mode", Boolean.class, "false"),
+
+    DEFAULT_MENU_TEAM("default_menu_team", String.class, "")
     ;
 
 

@@ -16,4 +16,5 @@ public interface PostService extends BasePostService<Post> {
 
     @NonNull
     PostDetailVO createBy(@NonNull Post post, Set<Integer> tagIds, Set<Integer> categoryIds, Set<PostMeta> metas, boolean autoSave);
+
 }

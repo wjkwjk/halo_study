@@ -115,7 +115,7 @@ public class InstallController {
     private User createUser(InstallParam installParam){
         return userService.getCurrentUser().map(user -> {
             installParam.update(user);
-            userService.setPassword(user, installParam.getPassword());
+            userService.setPassword(user, installParam.getPassword());//给密码加密
             return userService.update(user);
         }).orElseGet(() -> {
             //如果用户不存在，获取email在gravator上的对应的头像
@@ -136,7 +136,7 @@ public class InstallController {
         category.setSlug("default");
         category.setDescription("这是你的默认分类，如不需要，删除即可");
         ValidationUtils.validate(category);
-        return categoryService.create(category.convertTo());
+        return categoryService.create(category.convertTo());//category.convertTo():将CategoryParam转换为Category
     }
 
     //创建默认文章，如果已存在文章，则不创建

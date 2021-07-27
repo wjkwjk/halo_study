@@ -107,18 +107,6 @@
             <version>4.5.15</version>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/com.vladsch.flexmark/flexmark-util -->
-        <dependency>
-            <groupId>com.vladsch.flexmark</groupId>
-            <artifactId>flexmark-util</artifactId>
-            <version>0.34.18</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/com.vladsch.flexmark/flexmark-ext-tables -->
-        <dependency>
-            <groupId>com.vladsch.flexmark</groupId>
-            <artifactId>flexmark-ext-tables</artifactId>
-            <version>0.34.18</version>
-        </dependency>
 
         <!-- https://mvnrepository.com/artifact/com.vladsch.flexmark/flexmark -->
         <dependency>

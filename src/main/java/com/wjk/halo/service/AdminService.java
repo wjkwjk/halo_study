@@ -1,5 +1,7 @@
 package com.wjk.halo.service;
 
+import com.wjk.halo.model.dto.EnvironmentDTO;
+import com.wjk.halo.model.dto.StatisticDTO;
 import com.wjk.halo.model.entity.User;
 import com.wjk.halo.model.params.LoginParam;
 import com.wjk.halo.model.params.ResetPasswordParam;
@@ -22,5 +24,17 @@ public interface AdminService {
     void clearToken();
 
     void sendResetPasswordCode(@NonNull ResetPasswordParam param);
+
+    void resetPasswordByCode(@NonNull ResetPasswordParam param);
+
+    @NonNull
+    AuthToken refreshToken(@NonNull String refreshToken);
+
+    @NonNull
+    @Deprecated
+    StatisticDTO getCount();
+
+    @NonNull
+    EnvironmentDTO getEnvironments();
 
 }

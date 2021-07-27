@@ -6,13 +6,11 @@ import com.wjk.halo.exception.MissingPropertyException;
 import com.wjk.halo.model.entity.Option;
 import com.wjk.halo.model.enums.PostPermalinkType;
 import com.wjk.halo.model.params.OptionParam;
-import com.wjk.halo.model.properties.BlogProperties;
-import com.wjk.halo.model.properties.OtherProperties;
-import com.wjk.halo.model.properties.PermalinkProperties;
-import com.wjk.halo.model.properties.PropertyEnum;
+import com.wjk.halo.model.properties.*;
 import com.wjk.halo.repository.OptionRepository;
 import com.wjk.halo.service.OptionService;
 import com.wjk.halo.service.base.AbstractCrudService;
+import com.wjk.halo.utils.DateUtils;
 import com.wjk.halo.utils.ServiceUtils;
 import com.wjk.halo.utils.ValidationUtils;
 import lombok.extern.slf4j.Slf4j;
@@ -327,6 +325,16 @@ public class OptionServiceImpl extends AbstractCrudService<Option, Integer> impl
     public Object getByKeyOfNonNull(String key) {
         return getByKey(key).orElseThrow(()->new MissingPropertyException("You have to config " + key + " setting"));
     }
+
+    @Override
+    public long getBirthday() {
+        return getByProperty(PrimaryProperties.BIRTHDAY, Long.class).orElseGet(() -> {
+            long currentTime = DateUtils.now().getTime();
+            saveProperty(PrimaryProperties.BIRTHDAY, String.valueOf(currentTime));
+            return currentTime;
+        });
+    }
+
 
 
 }

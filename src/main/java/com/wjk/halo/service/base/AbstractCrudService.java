@@ -14,6 +14,7 @@ import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 public abstract class AbstractCrudService<DOMAIN, ID> implements CrudService<DOMAIN, ID> {
@@ -103,6 +104,16 @@ public abstract class AbstractCrudService<DOMAIN, ID> implements CrudService<DOM
         if (!existById(id)){
             throw new NotFoundException(domainName + " was not exist");
         }
+    }
+
+    @Override
+    public DOMAIN getById(ID id) {
+        return fetchById(id).orElseThrow(() -> new NotFoundException(domainName + " was not found or has been deleted"));
+    }
+
+    @Override
+    public Optional<DOMAIN> fetchById(ID id) {
+        return repository.findById(id);
     }
 
 

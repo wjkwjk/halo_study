@@ -9,4 +9,13 @@ import org.springframework.lang.NonNull;
 import java.util.Optional;
 
 public interface SheetRepository extends BasePostRepository<Sheet> {
+
+    @Override
+    @Query("select sum(p.visits) from Sheet p")
+    Long countVisit();
+
+    @Override
+    @Query("select sum(p.likes) from Sheet p")
+    Long countLike();
+
 }

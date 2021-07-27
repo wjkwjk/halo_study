@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 public interface CrudService<DOMAIN, ID> {
 
@@ -50,5 +51,11 @@ public interface CrudService<DOMAIN, ID> {
     boolean existById(@NonNull ID id);
 
     void mustExistById(@NonNull ID id);
+
+    @NonNull
+    DOMAIN getById(@NonNull ID id);
+
+    @NonNull
+    Optional<DOMAIN> fetchById(@NonNull ID id);
 
 }

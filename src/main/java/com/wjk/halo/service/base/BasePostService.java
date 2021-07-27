@@ -11,4 +11,8 @@ public interface BasePostService<POST extends BasePost> extends CrudService<POST
     @NonNull
     POST createOrUpdateBy(@NonNull POST post);
 
+    long countVisit();
+
+    long countLike();
+
 }
