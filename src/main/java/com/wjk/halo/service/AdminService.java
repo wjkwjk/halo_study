@@ -15,6 +15,8 @@ public interface AdminService {
 
     int REFRESH_TOKEN_EXPIRED_DAYS = 30;
 
+    String LOG_PATH = "logs/spring.log";
+
     @NonNull
     User authenticate(@NonNull LoginParam loginParam);
 
@@ -36,5 +38,9 @@ public interface AdminService {
 
     @NonNull
     EnvironmentDTO getEnvironments();
+
+    void updateAdminAssets();
+
+    String getLogFiles(@NonNull Long lines);
 
 }

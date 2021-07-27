@@ -26,16 +26,30 @@ import com.wjk.halo.security.context.SecurityContextHolder;
 import com.wjk.halo.security.token.AuthToken;
 import com.wjk.halo.security.util.SecurityUtils;
 import com.wjk.halo.service.*;
+import com.wjk.halo.utils.FileUtils;
 import com.wjk.halo.utils.HaloUtils;
 import com.wjk.halo.utils.TwoFactorAuthUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.http.ResponseEntity;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.lang.management.ManagementFactory;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Predicate;
 
 import static com.wjk.halo.model.support.HaloConst.*;
 
@@ -56,7 +70,7 @@ public class AdminServiceImpl implements AdminService {
     private final JournalCommentService journalCommentService;
     private final LinkService linkService;
     private final HaloProperties haloProperties;
-
+    private final RestTemplate restTemplate;
 
     public AdminServiceImpl(PostService postService,
                             SheetService sheetService,
@@ -69,6 +83,7 @@ public class AdminServiceImpl implements AdminService {
                             LinkService linkService,
                             MailService mailService,
                             AbstractStringCacheStore cacheStore,
+                            RestTemplate restTemplate,
                             HaloProperties haloProperties,
                             ApplicationEventPublisher eventPublisher) {
         this.userService = userService;
@@ -84,6 +99,7 @@ public class AdminServiceImpl implements AdminService {
         this.journalCommentService = journalCommentService;
         this.linkService = linkService;
         this.haloProperties = haloProperties;
+        this.restTemplate = restTemplate;
     }
 
     /**
@@ -285,6 +301,140 @@ public class AdminServiceImpl implements AdminService {
         environmentDTO.setMode(haloProperties.getMode());
         return environmentDTO;
 
+    }
+
+    @Override
+    public void updateAdminAssets() {
+        ResponseEntity<Map> responseEntity = restTemplate.getForEntity(HALO_ADMIN_RELEASES_LATEST, Map.class);
+
+        if (responseEntity.getStatusCode().isError() || responseEntity.getBody() == null){
+            log.debug("Failed to request remote url: [{}]", HALO_ADMIN_RELEASES_LATEST);
+            throw new ServiceException("系统无法访问到 Github 的 API").setErrorData(HALO_ADMIN_RELEASES_LATEST);
+        }
+        Object assetsObject = responseEntity.getBody().get("assets");
+
+        if (!(assetsObject instanceof List)){
+            throw new ServiceException("Github API 返回内容有误").setErrorData(assetsObject);
+        }
+
+        try {
+            List<?> assets = (List<?>) assetsObject;
+            Map assetMap = (Map) assets.stream()
+                    .filter(assetPredicate())
+                    .findFirst()
+                    .orElseThrow(() -> new ServiceException("Halo admin 最新版暂无资源文件，请稍后再试"));
+
+            Object browserDownloadUrl = assetMap.getOrDefault("browser_download_url", "");
+
+            ResponseEntity<byte[]> downloadResponseEntity = restTemplate.getForEntity(browserDownloadUrl.toString(), byte[].class);
+
+            if (downloadResponseEntity.getStatusCode().isError() || downloadResponseEntity.getBody() == null){
+                throw new ServiceException("Failed to request remote url: " + browserDownloadUrl.toString()).setErrorData(browserDownloadUrl.toString());
+            }
+
+            String adminTargetName = haloProperties.getWorkDir() + HALO_ADMIN_RELATIVE_PATH;
+
+            Path adminPath = Paths.get(adminTargetName);
+            Path adminBackupPath = Paths.get(haloProperties.getWorkDir(), HALO_ADMIN_RELATIVE_BACKUP_PATH);
+
+            backupAndClearAdminAssetsIfPresent(adminPath, adminBackupPath);
+
+            Path assetTempPath = FileUtils.createTempDirectory()
+                    .resolve(assetMap.getOrDefault("name", "halo-admin-latest.zip").toString());
+
+            FileUtils.unzip(downloadResponseEntity.getBody(), assetTempPath);
+
+            Path adminRootPath = FileUtils.findRootPath(assetTempPath,
+                    path -> StringUtils.equalsIgnoreCase("index.html", path.getFileName().toString()))
+                    .orElseThrow(() -> new BadRequestException("无法准确定位到压缩包的根路径，请确认包含 index.html 文件。"));
+            FileUtils.copyFolder(adminRootPath, adminPath);
+        }catch (Throwable t){
+            throw new ServiceException("更新 Halo admin 失败，" + t.getMessage(), t);
+        }
+    }
+
+    @Override
+    public String getLogFiles(Long lines) {
+        File file = new File(haloProperties.getWorkDir(), LOG_PATH);
+        List<String> linesArray = new ArrayList<>();
+        StringBuilder result = new StringBuilder();
+
+        if (!file.exists()){
+            return StringUtils.EMPTY;
+        }
+        long count = 0;
+
+        RandomAccessFile randomAccessFile = null;
+        try {
+            randomAccessFile = new RandomAccessFile(file, "r");
+            long length = randomAccessFile.length();
+            if (length == 0L){
+                return StringUtils.EMPTY;
+            }else {
+                long pos = length - 1;
+                while (pos > 0){
+                    pos--;
+                    randomAccessFile.seek(pos);
+                    if (randomAccessFile.readByte() == '\n'){
+                        String line = randomAccessFile.readLine();
+                        linesArray.add(new String(line.getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8));
+                        count++;
+                        if (count == lines){
+                            break;
+                        }
+                    }
+                }
+                if (pos == 0){
+                    randomAccessFile.seek(0);
+                    linesArray.add(new String(randomAccessFile.readLine().getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8));
+                }
+            }
+        }catch (Exception e){
+            throw new ServiceException("读取日志失败", e);
+        }finally {
+            if (randomAccessFile != null){
+                try{
+                    randomAccessFile.close();
+                }catch (IOException e){
+                    e.printStackTrace();
+                }
+            }
+        }
+        Collections.reverse(linesArray);
+
+        linesArray.forEach(line -> {
+            result.append(line)
+                    .append(StringUtils.LF);
+        });
+        return result.toString();
+    }
+
+    @NonNull
+    private Predicate<Object> assetPredicate(){
+        return asset -> {
+            if (!(asset instanceof Map)){
+                return false;
+            }
+            Map aAssetMap = (Map) asset;
+            String contentType = aAssetMap.getOrDefault("content_type", "").toString();
+
+            Object name = aAssetMap.getOrDefault("name", "");
+            return name.toString().matches(HALO_ADMIN_VERSION_REGEX) && "application/zip".equalsIgnoreCase(contentType);
+        };
+    }
+
+    private void backupAndClearAdminAssetsIfPresent(@NonNull Path sourcePath, @NonNull Path backupPath) throws IOException{
+        if (!FileUtils.isEmpty(sourcePath)){
+            Path adminPathBackup = Paths.get(haloProperties.getWorkDir(), HALO_ADMIN_RELATIVE_BACKUP_PATH);
+
+            FileUtils.deleteFolder(backupPath);
+
+            FileUtils.copyFolder(sourcePath, backupPath);
+
+            FileUtils.deleteFolder(sourcePath);
+        }else {
+            FileUtils.createIfAbsent(sourcePath);
+        }
     }
 
     @NonNull

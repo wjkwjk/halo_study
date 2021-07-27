@@ -76,4 +76,9 @@ public class HaloUtils {
         return content.replaceAll(RE_HTML_MARK, StringUtils.EMPTY);
     }
 
+    @NonNull
+    public static String ensureSuffix(@NonNull String string, @NonNull String suffix){
+        return StringUtils.removeEnd(string, suffix) + suffix;
+    }
+
 }

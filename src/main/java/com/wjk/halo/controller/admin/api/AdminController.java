@@ -10,10 +10,12 @@ import com.wjk.halo.model.enums.MFAType;
 import com.wjk.halo.model.params.LoginParam;
 import com.wjk.halo.model.params.ResetPasswordParam;
 import com.wjk.halo.model.properties.PrimaryProperties;
+import com.wjk.halo.model.support.BaseResponse;
 import com.wjk.halo.security.token.AuthToken;
 import com.wjk.halo.service.AdminService;
 import com.wjk.halo.service.OptionService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -86,6 +88,18 @@ public class AdminController {
     @GetMapping("environments")
     public EnvironmentDTO getEnvironments(){
         return adminService.getEnvironments();
+    }
+
+    @PutMapping("halo-admin")
+    @Deprecated
+    public void updateAdmin(){
+        adminService.updateAdminAssets();
+    }
+
+    @GetMapping(value = "halo/logfile")
+    @DisableOnCondition
+    public BaseResponse<String> getLogFiles(@RequestParam("lines") Long lines){
+        return BaseResponse.ok(HttpStatus.OK.getReasonPhrase(), adminService.getLogFiles(lines));
     }
 
 
