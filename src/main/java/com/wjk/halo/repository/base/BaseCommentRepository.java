@@ -21,6 +21,10 @@ public interface BaseCommentRepository<COMMENT extends BaseComment> extends Base
 
     long countByPostId(@NonNull Integer postId);
 
+    @Query("select new com.wjk.halo.model.projection.CommentCountProjection(count(comment.id), comment.postId) " +
+            "from BaseComment comment " +
+            "where comment.postId in ?1 " +
+            "group by comment.postId")
     @NonNull
     List<CommentCountProjection> countByPostIds(@NonNull Collection<Integer> postIds);
 

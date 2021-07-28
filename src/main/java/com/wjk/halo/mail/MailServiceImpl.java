@@ -31,4 +31,9 @@ public class MailServiceImpl extends AbstractMailService implements ApplicationL
             messageHelper.setText(content);
         });
     }
+
+    @Override
+    public void testConnection() {
+        super.testConnection();
+    }
 }

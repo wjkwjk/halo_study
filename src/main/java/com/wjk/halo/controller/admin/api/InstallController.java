@@ -33,7 +33,7 @@ import java.util.*;
 
 @Slf4j
 @Controller
-@RequestMapping("/admin/api/installations")
+@RequestMapping("/api/admin/installations")
 public class InstallController {
 
 

@@ -1,6 +1,7 @@
 package com.wjk.halo.security.context;
 
 import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 
 public class SecurityContextHolder {
 
@@ -19,9 +20,17 @@ public class SecurityContextHolder {
         return context;
     }
 
+    public static void setContext(@Nullable SecurityContext context){
+        CONTEXT_HOLDER.set(context);
+    }
+
     @NonNull
     private static SecurityContext createEmptyContent(){
         return new SecurityContextImpl(null);
+    }
+
+    public static void clearContext(){
+        CONTEXT_HOLDER.remove();
     }
 
 }

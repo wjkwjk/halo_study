@@ -25,4 +25,9 @@ public abstract class AbstractHaloException extends RuntimeException{
     @NonNull
     public abstract HttpStatus getStatus();
 
+    @Nullable
+    public Object getErrorData(){
+        return errorData;
+    }
+
 }

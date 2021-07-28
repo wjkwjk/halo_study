@@ -3,6 +3,7 @@ package com.wjk.halo.config;
 import com.wjk.halo.cache.AbstractStringCacheStore;
 import com.wjk.halo.cache.InMemoryCacheStore;
 import com.wjk.halo.config.properties.HaloProperties;
+import com.wjk.halo.utils.HttpClientUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
@@ -25,9 +26,12 @@ public class HaloConfiguration {
     @Autowired
     private HaloProperties haloProperties;
 
+    @Bean
     public RestTemplate httpsRestTemplate(RestTemplateBuilder builder) throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException{
         RestTemplate httpsRestTemplate = builder.build();
-        httpsRestTemplate.setRequestFactory(new HttpComponentsClientHttpRequestFactory(HttpClient));
+        httpsRestTemplate.setRequestFactory(new HttpComponentsClientHttpRequestFactory(HttpClientUtils.createHttpsClient(
+                (int) haloProperties.getDownloadTimeout().toMillis())));
+        return httpsRestTemplate;
     }
 
     @Bean

@@ -22,7 +22,7 @@ import javax.validation.Valid;
 
 @Slf4j
 @RestController
-@RequestMapping(value = "/admin/api")
+@RequestMapping(value = "/api/admin")
 public class AdminController {
     private final AdminService adminService;
     private final OptionService optionService;
@@ -53,6 +53,11 @@ public class AdminController {
         return adminService.authCodeCheck(loginParam);
     }
 
+    /**
+     * 有一个拦截器，因此需要先进行登陆，得到token，再将token放到请求参数中
+     * ADMIN-Authorization：token，放在请求头中
+     * admin_token：token，放在请求参数中
+     */
     @PostMapping("logout")
     @CacheLock(autoDelete = false)
     public void logout(){

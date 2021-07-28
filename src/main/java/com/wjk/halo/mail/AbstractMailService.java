@@ -42,6 +42,19 @@ public abstract class AbstractMailService implements MailService {
         log.debug("Cleared all mail caches");
     }
 
+    @Override
+    public void testConnection() {
+        JavaMailSender javaMailSender = getMailSender();
+        if (javaMailSender instanceof JavaMailSenderImpl){
+            JavaMailSenderImpl mailSender = (JavaMailSenderImpl) javaMailSender;
+            try {
+                mailSender.testConnection();
+            }catch (MessagingException e){
+                throw new EmailException("无法连接到邮箱服务器，请检查邮箱配置.[" + e.getMessage() + "]", e);
+            }
+        }
+    }
+
     protected interface Callback{
         void handle(@NonNull MimeMessageHelper messageHelper) throws Exception;
     }
