@@ -116,5 +116,19 @@ public abstract class AbstractCrudService<DOMAIN, ID> implements CrudService<DOM
         return repository.findById(id);
     }
 
+    @Override
+    public DOMAIN removeById(ID id) {
+        DOMAIN domain = getById(id);
+
+        remove(domain);
+
+        return domain;
+    }
+
+    @Override
+    public void remove(DOMAIN domain) {
+        repository.delete(domain);
+    }
+
 
 }

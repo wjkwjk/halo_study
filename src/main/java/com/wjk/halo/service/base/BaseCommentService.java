@@ -151,6 +151,11 @@ public interface BaseCommentService<COMMENT extends BaseComment> extends CrudSer
     @Override
     COMMENT create(@NonNull COMMENT comment);
 
+    @Override
+    default COMMENT removeById(Long aLong) {
+        return null;
+    }
+
     /**
      * Creates a comment by comment param.
      *

@@ -1,11 +1,16 @@
 package com.wjk.halo.service;
 
+import com.wjk.halo.model.dto.OptionDTO;
+import com.wjk.halo.model.dto.OptionSimpleDTO;
 import com.wjk.halo.model.entity.Option;
 import com.wjk.halo.model.entity.PostTag;
 import com.wjk.halo.model.enums.PostPermalinkType;
 import com.wjk.halo.model.params.OptionParam;
+import com.wjk.halo.model.params.OptionQuery;
 import com.wjk.halo.model.properties.PropertyEnum;
 import com.wjk.halo.service.base.CrudService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.transaction.annotation.Transactional;
@@ -88,4 +93,17 @@ public interface OptionService extends CrudService<Option, Integer> {
 
     long getBirthday();
 
+    @NonNull
+    List<OptionDTO> listDtos();
+
+    Page<OptionSimpleDTO> pageDtosBy(@NonNull Pageable pageable, OptionQuery optionQuery);
+
+    @NonNull
+    OptionSimpleDTO convertToDto(@NonNull Option option);
+
+
+    void update(@NonNull Integer optionId, @NonNull OptionParam optionParam);
+
+    @NonNull
+    Option removePermanently(@NonNull Integer id);
 }

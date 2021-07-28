@@ -1,5 +1,6 @@
 package com.wjk.halo.service.base;
 
+import com.wjk.halo.model.params.OptionParam;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -57,5 +58,12 @@ public interface CrudService<DOMAIN, ID> {
 
     @NonNull
     Optional<DOMAIN> fetchById(@NonNull ID id);
+
+    @NonNull
+    @Transactional
+    DOMAIN removeById(@NonNull ID id);
+
+    @Transactional
+    void remove(@NonNull DOMAIN domain);
 
 }

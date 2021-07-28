@@ -3,9 +3,13 @@ package com.wjk.halo.service.impl;
 import com.wjk.halo.cache.AbstractStringCacheStore;
 import com.wjk.halo.event.options.OptionUpdateEvent;
 import com.wjk.halo.exception.MissingPropertyException;
+import com.wjk.halo.model.dto.OptionDTO;
+import com.wjk.halo.model.dto.OptionSimpleDTO;
+import com.wjk.halo.model.entity.Link;
 import com.wjk.halo.model.entity.Option;
 import com.wjk.halo.model.enums.PostPermalinkType;
 import com.wjk.halo.model.params.OptionParam;
+import com.wjk.halo.model.params.OptionQuery;
 import com.wjk.halo.model.properties.*;
 import com.wjk.halo.repository.OptionRepository;
 import com.wjk.halo.service.OptionService;
@@ -20,12 +24,14 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
+import javax.persistence.criteria.Predicate;
 import java.util.*;
 
 @Slf4j
@@ -333,6 +339,63 @@ public class OptionServiceImpl extends AbstractCrudService<Option, Integer> impl
             saveProperty(PrimaryProperties.BIRTHDAY, String.valueOf(currentTime));
             return currentTime;
         });
+    }
+
+    @Override
+    public List<OptionDTO> listDtos() {
+        List<OptionDTO> result = new LinkedList<>();
+        listOptions().forEach((key, value) -> result.add(new OptionDTO(key, value)));
+
+        return result;
+
+    }
+
+    @Override
+    public Page<OptionSimpleDTO> pageDtosBy(Pageable pageable, OptionQuery optionQuery) {
+        Page<Option> optionPage = optionRepository.findAll(buildSpecByQuery(optionQuery), pageable);
+        return optionPage.map(this::convertToDto);
+    }
+
+    @Override
+    public OptionSimpleDTO convertToDto(Option option) {
+        return new OptionSimpleDTO().convertFrom(option);
+    }
+
+    @Override
+    public void update(Integer optionId, OptionParam optionParam) {
+        Option optionToUpdate = getById(optionId);
+        optionParam.update(optionToUpdate);
+        update(optionToUpdate);
+        publishOptionUpdateEvent();
+    }
+
+    @Override
+    public Option removePermanently(Integer id) {
+        Option deleteOption = removeById(id);
+        publishOptionUpdateEvent();
+        return deleteOption;
+    }
+
+    @NonNull
+    private Specification<Option> buildSpecByQuery(@NonNull OptionQuery optionQuery){
+        return (Specification<Option>) (root, query, criteriaBuilder) ->{
+            List<Predicate> predicates = new LinkedList<>();
+
+            if (optionQuery.getType() != null){
+                predicates.add(criteriaBuilder.equal(root.get("type"), optionQuery.getType()));
+            }
+
+            if (optionQuery.getKeyword() != null){
+                String likeCondition = String.format("%%%s%%", StringUtils.strip(optionQuery.getKeyword()));
+
+                Predicate keyLike = criteriaBuilder.like(root.get("key"), likeCondition);
+
+                Predicate valueLike = criteriaBuilder.like(root.get("value"), likeCondition);
+
+                predicates.add(criteriaBuilder.or(keyLike, valueLike));
+            }
+            return query.where(predicates.toArray(new Predicate[0])).getRestriction();
+        };
     }
 
 
