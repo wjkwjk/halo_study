@@ -23,4 +23,8 @@ public interface PostCategoryService extends CrudService<PostCategory, Integer> 
     @NonNull
     List<CategoryWithPostCountDTO> listCategoryWithPostCountDto(@NonNull Sort sort);
 
+    @NonNull
+    @Transactional
+    List<PostCategory> removeByCategoryId(@NonNull Integer categoryId);
+
 }

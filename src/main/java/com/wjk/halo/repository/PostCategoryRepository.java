@@ -20,4 +20,7 @@ public interface PostCategoryRepository extends BaseRepository<PostCategory, Int
     @NonNull
     List<CategoryPostCountProjection> findPostCount();
 
+    @NonNull
+    List<PostCategory> deleteByCategoryId(@NonNull Integer categoryId);
+
 }

@@ -113,4 +113,9 @@ public class PostCategoryServiceImpl extends AbstractCrudService<PostCategory, I
                 })
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public List<PostCategory> removeByCategoryId(Integer categoryId) {
+        return postCategoryRepository.deleteByCategoryId(categoryId);
+    }
 }

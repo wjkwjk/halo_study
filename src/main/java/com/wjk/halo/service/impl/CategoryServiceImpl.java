@@ -116,6 +116,25 @@ public class CategoryServiceImpl extends AbstractCrudService<Category, Integer> 
 
     }
 
+    @Override
+    @Transactional
+    public void removeCategoryAndPostCategoryBy(Integer categoryId) {
+        List<Category> categories = listByParentId(categoryId);
+        if (null != categories && categories.size() > 0){
+            categories.forEach(category -> {
+                category.setParentId(0);
+                update(category);
+            });
+        }
+        removeById(categoryId);
+        postCategoryService.removeByCategoryId(categoryId);
+    }
+
+    @Override
+    public List<Category> listByParentId(Integer id) {
+        return categoryRepository.findByParentId(id);
+    }
+
     @NonNull
     private CategoryVO createTopLevelCategory(){
         CategoryVO topCategory = new CategoryVO();

@@ -23,4 +23,9 @@ public interface CategoryService extends CrudService<Category, Integer> {
     @NonNull
     List<CategoryVO> listAsTree(@NonNull Sort sort);
 
+    @Transactional
+    void removeCategoryAndPostCategoryBy(Integer categoryId);
+
+    List<Category> listByParentId(@NonNull Integer id);
+
 }
