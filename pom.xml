@@ -251,6 +251,21 @@
             <version>4.5.12</version>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/com.google.code.findbugs/annotations -->
+        <dependency>
+            <groupId>com.google.code.findbugs</groupId>
+            <artifactId>annotations</artifactId>
+            <version>3.0.1u2</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/com.google.zxing/core -->
+        <dependency>
+            <groupId>com.google.zxing</groupId>
+            <artifactId>core</artifactId>
+            <version>3.4.0</version>
+        </dependency>
+
+
     </dependencies>
 
     <build>

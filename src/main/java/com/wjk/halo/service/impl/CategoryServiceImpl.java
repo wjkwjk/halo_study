@@ -4,6 +4,7 @@ import com.wjk.halo.exception.AlreadyExistsException;
 import com.wjk.halo.exception.NotFoundException;
 import com.wjk.halo.model.dto.CategoryDTO;
 import com.wjk.halo.model.entity.Category;
+import com.wjk.halo.model.vo.CategoryVO;
 import com.wjk.halo.repository.CategoryRepository;
 import com.wjk.halo.repository.base.BaseRepository;
 import com.wjk.halo.service.CategoryService;
@@ -11,14 +12,18 @@ import com.wjk.halo.service.OptionService;
 import com.wjk.halo.service.PostCategoryService;
 import com.wjk.halo.service.base.AbstractCrudService;
 import com.wjk.halo.utils.ServiceUtils;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.wjk.halo.model.support.HaloConst.URL_SEPARATOR;
@@ -92,6 +97,37 @@ public class CategoryServiceImpl extends AbstractCrudService<Category, Integer> 
         return categories.stream()
                 .map(this::convertTo)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<CategoryVO> listAsTree(Sort sort) {
+        List<Category> categories = listAll(sort);
+
+        if (CollectionUtils.isEmpty(categories)){
+            return Collections.emptyList();
+        }
+
+        CategoryVO topLevelCategory = createTopLevelCategory();
+
+
+
+    }
+
+    @NonNull
+    private CategoryVO createTopLevelCategory(){
+        CategoryVO topCategory = new CategoryVO();
+        topCategory.setId(0);
+        topCategory.setChildren(new LinkedList<>());
+        topCategory.setParentId(-1);
+        return topCategory;
+    }
+
+    public void concreteTree(CategoryVO parentCategory, List<Category> categories){
+        if (CollectionUtils.isEmpty(categories)){
+            return;
+        }
+        List<Category> children = categories.stream()
+                .filter(category -> Objects)
     }
 
 }

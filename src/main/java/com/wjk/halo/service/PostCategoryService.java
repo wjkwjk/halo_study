@@ -1,7 +1,9 @@
 package com.wjk.halo.service;
 
+import com.wjk.halo.model.dto.CategoryWithPostCountDTO;
 import com.wjk.halo.model.entity.PostCategory;
 import com.wjk.halo.service.base.CrudService;
+import org.springframework.data.domain.Sort;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,5 +19,8 @@ public interface PostCategoryService extends CrudService<PostCategory, Integer> 
 
     @NonNull
     List<PostCategory> mergeOrCreateByIfAbsent(@NonNull Integer postId, @Nullable Set<Integer> categoryIds);
+
+    @NonNull
+    List<CategoryWithPostCountDTO> listCategoryWithPostCountDto(@NonNull Sort sort);
 
 }
