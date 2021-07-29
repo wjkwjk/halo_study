@@ -43,7 +43,7 @@ public class CategoryController {
 
     @GetMapping("tree_view")
     public List<CategoryVO> listAsTree(@SortDefault(sort = "name", direction = ASC) Sort sort){
-        return categoryService.lis
+        return categoryService.listAsTree(sort);
     }
 
 }

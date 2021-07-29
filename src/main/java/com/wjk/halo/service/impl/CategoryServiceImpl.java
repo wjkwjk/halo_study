@@ -1,5 +1,6 @@
 package com.wjk.halo.service.impl;
 
+import com.google.common.base.Objects;
 import com.wjk.halo.exception.AlreadyExistsException;
 import com.wjk.halo.exception.NotFoundException;
 import com.wjk.halo.model.dto.CategoryDTO;
@@ -23,7 +24,6 @@ import org.springframework.util.CollectionUtils;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.wjk.halo.model.support.HaloConst.URL_SEPARATOR;
@@ -109,6 +109,9 @@ public class CategoryServiceImpl extends AbstractCrudService<Category, Integer> 
 
         CategoryVO topLevelCategory = createTopLevelCategory();
 
+        concreteTree(topLevelCategory, categories);
+
+        return topLevelCategory.getChildren();
 
 
     }
@@ -127,7 +130,33 @@ public class CategoryServiceImpl extends AbstractCrudService<Category, Integer> 
             return;
         }
         List<Category> children = categories.stream()
-                .filter(category -> Objects)
+                .filter(category -> Objects.equal(parentCategory.getId(), category.getParentId()))
+                .collect(Collectors.toList());
+
+        children.forEach(category -> {
+            CategoryVO child = new CategoryVO().convertFrom(category);
+
+            if (parentCategory.getChildren() == null){
+                parentCategory.setChildren(new LinkedList<>());
+            }
+
+            StringBuilder fullPath = new StringBuilder();
+
+            if (optionService.isEnabledAbsolutePath()){
+                fullPath.append(optionService.getBlogBaseUrl());
+            }
+
+            fullPath.append(URL_SEPARATOR)
+                    .append(optionService.getCategoriesPrefix())
+                    .append(URL_SEPARATOR)
+                    .append(child.getSlug())
+                    .append(optionService.getPathSuffix());
+            child.setFullPath(fullPath.toString());
+
+            parentCategory.getChildren().add(child);
+
+        });
+
     }
 
 }
