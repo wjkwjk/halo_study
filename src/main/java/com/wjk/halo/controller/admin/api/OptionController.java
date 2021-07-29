@@ -46,7 +46,7 @@ public class OptionController {
 
     @PostMapping("map_view/keys")
     public Map<String, Object> listAllWithMapView(@RequestBody List<String> keys){
-        return optionService.listOptions();
+        return optionService.listOptions(keys);
     }
 
     @GetMapping("list_view")

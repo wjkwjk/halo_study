@@ -1,6 +1,7 @@
 package com.wjk.halo.service.impl;
 
 import cn.hutool.crypto.digest.BCrypt;
+import com.wjk.halo.exception.BadRequestException;
 import com.wjk.halo.exception.ServiceException;
 import com.wjk.halo.event.logger.LogEvent;
 import com.wjk.halo.event.user.UserUpdateEvent;
@@ -81,6 +82,38 @@ public class UserServiceImpl extends AbstractCrudService<User, Integer> implemen
 
         User user = getCurrentUser().orElseThrow(() -> new ServiceException("未查询到博主信息"));
         return user.getUsername().equals(username) && user.getEmail().equals(password);
+    }
+
+    @Override
+    public User updatePassword(String oldPassword, String newPasswod, Integer userId) {
+        if (oldPassword.equals(newPasswod)){
+            throw new BadRequestException("新密码和旧密码不能相同");
+        }
+        User user = getById(userId);
+
+        if (!BCrypt.checkpw(oldPassword, user.getPassword())){
+            throw new BadRequestException("旧密码错误").setErrorData(oldPassword);
+        }
+
+        setPassword(user, newPasswod);
+
+        User updatedUser = update(user);
+
+        eventPublisher.publishEvent(new LogEvent(this, updatedUser.getId().toString(), LogType.PASSWORD_UPDATED, HaloUtils.desensitize(oldPassword, 2, 1)));
+
+        return updatedUser;
+
+    }
+
+    @Override
+    @NonNull
+    public User updateMFA(MFAType mfaType, String mfaKey, Integer userId) {
+        User user = getById(userId);
+        user.setMfaType(mfaType);
+        user.setMfaKey((MFAType.NONE == mfaType) ? null : mfaKey);
+        User updatedUser = update(user);
+        eventPublisher.publishEvent(new LogEvent(this, updatedUser.getId().toString(), LogType.MFA_UPDATED, "MFA Type:" + mfaType));
+        return updatedUser;
     }
 
     @Override

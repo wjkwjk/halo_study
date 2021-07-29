@@ -1,6 +1,7 @@
 package com.wjk.halo.service;
 
 import com.wjk.halo.model.entity.User;
+import com.wjk.halo.model.enums.MFAType;
 import com.wjk.halo.model.params.UserParam;
 import com.wjk.halo.service.base.CrudService;
 import org.springframework.lang.NonNull;
@@ -38,5 +39,9 @@ public interface UserService extends CrudService<User, Integer> {
 
     boolean verifyUser(@NonNull String username, @NonNull String password);
 
+    @NonNull
+    User updatePassword(@NonNull String oldPassword, @NonNull String newPasswod, @NonNull Integer userId);
 
+    @NonNull
+    User updateMFA(@NonNull MFAType mfaType, String mfaKey, @NonNull Integer userId);
 }

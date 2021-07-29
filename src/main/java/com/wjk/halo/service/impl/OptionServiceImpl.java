@@ -376,6 +376,21 @@ public class OptionServiceImpl extends AbstractCrudService<Option, Integer> impl
         return deleteOption;
     }
 
+    @Override
+    public Map<String, Object> listOptions(List<String> keys) {
+        if (CollectionUtils.isEmpty(keys)){
+            return Collections.emptyMap();
+        }
+        Map<String, Object> optionMap = listOptions();
+
+        Map<String, Object> result = new HashMap<>(keys.size());
+
+        keys.stream()
+                .filter(optionMap::containsKey)
+                .forEach(key -> result.put(key, optionMap.get(key)));
+        return result;
+    }
+
     @NonNull
     private Specification<Option> buildSpecByQuery(@NonNull OptionQuery optionQuery){
         return (Specification<Option>) (root, query, criteriaBuilder) ->{

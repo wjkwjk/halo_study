@@ -6,11 +6,21 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.security.GeneralSecurityException;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.Arrays;
+import java.util.Random;
 
 public class TwoFactorAuthUtils {
 
     private final static int VALID_TFA_WINDOW_MILLIS = 60000;
+
+    public static String generateTFAKey(){
+        return TimeBasedOneTimePasswordUtil.generateBase32Secret(32);
+    }
+
+    public static String generateOtpAuthUrl(final String userName, final String tfaKey){
+        return TimeBasedOneTimePasswordUtil.generateOtpAuthUrl(userName, tfaKey);
+    }
 
     /**
      *
@@ -173,6 +183,28 @@ class TimeBasedOneTimePasswordUtil{
 
     }
 
+    public static String generateBase32Secret(int length){
+        StringBuilder sb = new StringBuilder(length);
+        Random random = new SecureRandom();
+        for (int i=0; i<length; i++){
+            int val = random.nextInt(32);
+            if (val < 26) {
+                sb.append((char) ('A' + val));
+            } else {
+                sb.append((char) ('2' + (val - 26)));
+            }
+        }
+        return sb.toString();
+    }
 
+    public static String generateOtpAuthUrl(String keyId, String secret){
+        StringBuilder sb = new StringBuilder(64);
+        addOtpAuthPart(keyId, secret, sb);
+        return sb.toString();
+    }
+
+    private static void addOtpAuthPart(String keyId, String secret, StringBuilder sb){
+        sb.append("otpauth://totp/").append(keyId).append("?secret=").append(secret);
+    }
 
 }
