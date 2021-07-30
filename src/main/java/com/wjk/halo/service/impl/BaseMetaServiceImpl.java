@@ -5,14 +5,12 @@ import com.wjk.halo.model.entity.BaseMeta;
 import com.wjk.halo.repository.base.BaseMetaRepository;
 import com.wjk.halo.service.base.AbstractCrudService;
 import com.wjk.halo.service.base.BaseMetaService;
+import com.wjk.halo.utils.ServiceUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public abstract class BaseMetaServiceImpl<META extends BaseMeta> extends AbstractCrudService<META, Long> implements BaseMetaService<META> {
@@ -62,5 +60,38 @@ public abstract class BaseMetaServiceImpl<META extends BaseMeta> extends Abstrac
         return postMetaList.stream()
                 .map(this::convertTo)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Map<Integer, List<META>> listPostMetaAsMap(Set<Integer> postIds) {
+        if (CollectionUtils.isEmpty(postIds)){
+            return Collections.emptyMap();
+        }
+
+        // Find all metas
+        List<META> metas = baseMetaRepository.findAllByPostIdIn(postIds);
+
+        // Convert to meta map
+        Map<Long, META> postMetaMap = ServiceUtils.convertToMap(metas, META::getId);
+
+        // Create category list map
+        Map<Integer, List<META>> postMetaListMap = new HashMap<>();
+
+        // Foreach and collect
+        metas.forEach(meta -> postMetaListMap.computeIfAbsent(meta.getPostId(), postId -> new LinkedList<>())
+        .add(postMetaMap.get(meta.getId())));
+
+        return postMetaListMap;
+
+    }
+
+    @Override
+    public Map<String, Object> convertToMap(List<META> metas) {
+        return ServiceUtils.convertToMap(metas, META::getKey, META::getValue);
+    }
+
+    @Override
+    public List<META> listBy(Integer postId) {
+        return baseMetaRepository.findAllByPostId(postId);
     }
 }

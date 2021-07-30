@@ -31,6 +31,8 @@ public class UserController {
         this.userService = userService;
     }
 
+    //不带注解的参数获取来自请求链接中的参数，参数名赋值给对象中的属性名相同的变量
+
     @GetMapping("profiles")
     public UserDTO getProfile(User user){
         return new UserDTO().convertFrom(user);
@@ -51,7 +53,7 @@ public class UserController {
         userService.updatePassword(passwordParam.getOldPassword(), passwordParam.getNewPassword(), user.getId());
         return BaseResponse.ok("密码修改成功");
     }
-
+    //生成二维码图片
     @PutMapping("mfa/generate")
     @DisableOnCondition
     public MultiFactorAuthVO generateMFAQrImage(@RequestBody MultiFactorAuthParam multiFactorAuthParam, User user){

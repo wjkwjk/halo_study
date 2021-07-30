@@ -13,11 +13,9 @@ import com.wjk.halo.service.base.AbstractCrudService;
 import com.wjk.halo.utils.ServiceUtils;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.wjk.halo.model.support.HaloConst.URL_SEPARATOR;
@@ -85,13 +83,13 @@ public class PostCategoryServiceImpl extends AbstractCrudService<PostCategory, I
     @Override
     public List<CategoryWithPostCountDTO> listCategoryWithPostCountDto(Sort sort) {
         List<Category> categories = categoryRepository.findAll(sort);
-
+        //获得每个类别以及所包括的post数
         Map<Integer, Long> categoryPostCountMap = ServiceUtils.convertToMap(postCategoryRepository.findPostCount(), CategoryPostCountProjection::getCategoryId, CategoryPostCountProjection::getPostCount);
 
         return categories.stream()
                 .map(category -> {
                     CategoryWithPostCountDTO categoryWithPostCountDTO = new CategoryWithPostCountDTO().convertFrom(category);
-
+                    //设置category对应的post数
                     categoryWithPostCountDTO.setPostCount(categoryPostCountMap.getOrDefault(category.getId(), 0L));
 
                     StringBuilder fullPath = new StringBuilder();
@@ -117,5 +115,40 @@ public class PostCategoryServiceImpl extends AbstractCrudService<PostCategory, I
     @Override
     public List<PostCategory> removeByCategoryId(Integer categoryId) {
         return postCategoryRepository.deleteByCategoryId(categoryId);
+    }
+
+    @Override
+    public Map<Integer, List<Category>> listCategoryListMap(Collection<Integer> postIds) {
+        if (CollectionUtils.isEmpty(postIds)){
+            return Collections.emptyMap();
+        }
+
+        // Find all post categories
+        List<PostCategory> postCategories = postCategoryRepository.findAllByPostIdIn(postIds);
+
+        // Fetch category ids
+        Set<Integer> categoryIds = ServiceUtils.fetchProperty(postCategories, PostCategory::getCategoryId);
+
+        // Find all categories
+        List<Category> categories = categoryRepository.findAllById(categoryIds);
+
+        // Convert to category map
+        Map<Integer, Category> categoryMap = ServiceUtils.convertToMap(categories, Category::getId);
+
+        // Create category list map
+        Map<Integer, List<Category>> categoryListMap = new HashMap<>();
+
+        // Foreach and collect
+        postCategories.forEach(postCategory -> categoryListMap.computeIfAbsent(postCategory.getPostId(), postId -> new LinkedList<>())
+        .add(categoryMap.get(postCategory.getCategoryId())));
+
+        return categoryListMap;
+
+    }
+
+    @Override
+    public List<Category> listCategoriesBy(Integer postId) {
+        Set<Integer> categoryIds = postCategoryRepository.findAllCategoryIdsByPostId(postId);
+        return categoryRepository.findAllById(categoryIds);
     }
 }

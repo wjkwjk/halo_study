@@ -10,6 +10,8 @@ import com.wjk.halo.service.SheetMetaService;
 import com.wjk.halo.service.SheetService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -58,5 +60,10 @@ public class SheetServiceImpl extends BasePostServiceImpl<Sheet> implements Shee
         }
         return createdSheet;
 
+    }
+
+    @Override
+    public Page<Sheet> pageBy(Pageable pageable) {
+        return listAll(pageable);
     }
 }

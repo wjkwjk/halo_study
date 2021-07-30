@@ -154,16 +154,6 @@ public class OptionServiceImpl extends AbstractCrudService<Option, Integer> impl
     }
 
     @Override
-    public List<Option> listAll(Sort sort) {
-        return null;
-    }
-
-    @Override
-    public Page<Option> listAll(Pageable pageable) {
-        return null;
-    }
-
-    @Override
     public String getBlogTitle() {
         return getByProperty(BlogProperties.BLOG_TITLE).orElse("").toString();
     }

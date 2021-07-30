@@ -43,7 +43,7 @@ public class CategoryController {
         }
         return categoryService.convertTo(categoryService.listAll(sort));
     }
-
+    //展示所有最大的类别
     @GetMapping("tree_view")
     public List<CategoryVO> listAsTree(@SortDefault(sort = "name", direction = ASC) Sort sort){
         return categoryService.listAsTree(sort);

@@ -1,12 +1,15 @@
 package com.wjk.halo.service;
 
 import com.wjk.halo.model.entity.PostTag;
+import com.wjk.halo.model.entity.Tag;
 import com.wjk.halo.service.base.CrudService;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public interface PostTagService extends CrudService<PostTag, Integer> {
@@ -22,4 +25,9 @@ public interface PostTagService extends CrudService<PostTag, Integer> {
     @NonNull
     List<PostTag> mergeOrCreateByIfAbsent(@NonNull Integer postId, @Nullable Set<Integer> tagIds);
 
+    @NonNull
+    Map<Integer, List<Tag>> listTagListMapBy(@Nullable Collection<Integer> postIds);
+
+    @NonNull
+    List<Tag> listTagsBy(@NonNull Integer postId);
 }

@@ -106,7 +106,7 @@ public class CategoryServiceImpl extends AbstractCrudService<Category, Integer> 
         if (CollectionUtils.isEmpty(categories)){
             return Collections.emptyList();
         }
-
+        //生成类别树的根节点
         CategoryVO topLevelCategory = createTopLevelCategory();
 
         concreteTree(topLevelCategory, categories);
@@ -148,6 +148,7 @@ public class CategoryServiceImpl extends AbstractCrudService<Category, Integer> 
         if (CollectionUtils.isEmpty(categories)){
             return;
         }
+        //找到当前parentCategory的子节点
         List<Category> children = categories.stream()
                 .filter(category -> Objects.equal(parentCategory.getId(), category.getParentId()))
                 .collect(Collectors.toList());

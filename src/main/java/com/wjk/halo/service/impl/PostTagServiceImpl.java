@@ -1,16 +1,16 @@
 package com.wjk.halo.service.impl;
 
 import com.wjk.halo.model.entity.PostTag;
+import com.wjk.halo.model.entity.Tag;
 import com.wjk.halo.repository.PostTagRepository;
+import com.wjk.halo.repository.TagRepository;
 import com.wjk.halo.service.PostTagService;
 import com.wjk.halo.service.base.AbstractCrudService;
+import com.wjk.halo.utils.ServiceUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -18,9 +18,13 @@ public class PostTagServiceImpl extends AbstractCrudService<PostTag, Integer> im
 
     private PostTagRepository postTagRepository;
 
-    protected PostTagServiceImpl(PostTagRepository postTagRepository, PostTagRepository postTagRepository1) {
+    private final TagRepository tagRepository;
+
+    protected PostTagServiceImpl(PostTagRepository postTagRepository,
+                                 TagRepository tagRepository) {
         super(postTagRepository);
-        this.postTagRepository = postTagRepository1;
+        this.postTagRepository = postTagRepository;
+        this.tagRepository = tagRepository;
     }
 
     @Override
@@ -70,5 +74,32 @@ public class PostTagServiceImpl extends AbstractCrudService<PostTag, Integer> im
 
         return postTags;
 
+    }
+
+    @Override
+    public Map<Integer, List<Tag>> listTagListMapBy(Collection<Integer> postIds) {
+        if (CollectionUtils.isEmpty(postIds)){
+            return Collections.emptyMap();
+        }
+
+        List<PostTag> postTags = postTagRepository.findAllByPostIdIn(postIds);
+
+        Set<Integer> tagIds = ServiceUtils.fetchProperty(postTags, PostTag::getTagId);
+
+        List<Tag> tags = tagRepository.findAllById(tagIds);
+
+        Map<Integer, Tag> tagMap = ServiceUtils.convertToMap(tags, Tag::getId);
+
+        Map<Integer, List<Tag>> tagListMap = new HashMap<>();
+
+        postTags.forEach(postTag -> tagListMap.computeIfAbsent(postTag.getPostId(), postId -> new LinkedList<>()).add(tagMap.get(postTag.getTagId())));
+
+        return tagListMap;
+    }
+
+    @Override
+    public List<Tag> listTagsBy(Integer postId) {
+        Set<Integer> tagIds = postTagRepository.findAllTagIdsByPostId(postId);
+        return tagRepository.findAllById(tagIds);
     }
 }

@@ -1,6 +1,8 @@
 package com.wjk.halo.service.impl;
 
 import com.wjk.halo.exception.AlreadyExistsException;
+import com.wjk.halo.model.dto.post.BasePostMinimalDTO;
+import com.wjk.halo.model.dto.post.BasePostSimpleDTO;
 import com.wjk.halo.model.entity.BasePost;
 import com.wjk.halo.model.enums.PostEditorType;
 import com.wjk.halo.model.enums.PostStatus;
@@ -16,12 +18,20 @@ import com.wjk.halo.utils.MarkdownUtils;
 import com.wjk.halo.utils.ServiceUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.lang.NonNull;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Slf4j
 public abstract class BasePostServiceImpl<POST extends BasePost> extends AbstractCrudService<POST, Integer> implements BasePostService<POST> {
@@ -79,6 +89,53 @@ public abstract class BasePostServiceImpl<POST extends BasePost> extends Abstrac
     @Override
     public long countLike() {
         return Optional.ofNullable(basePostRepository.countLike()).orElse(0L);
+    }
+
+    @Override
+    public Page<BasePostSimpleDTO> convertToSimple(Page<POST> postPage) {
+        return postPage.map(this::convertToSimple);
+    }
+
+    @Override
+    public BasePostSimpleDTO convertToSimple(POST post) {
+        BasePostSimpleDTO basePostSimpleDTO = new BasePostSimpleDTO().convertFrom(post);
+
+        if (StringUtils.isBlank(basePostSimpleDTO.getSummary())){
+            basePostSimpleDTO.setSummary(generateSummary(post.getFormatContent()));
+        }
+        return basePostSimpleDTO;
+    }
+
+    @Override
+    public List<BasePostMinimalDTO> convertToMinimal(List<POST> posts) {
+        if (CollectionUtils.isEmpty(posts)){
+            return Collections.emptyList();
+        }
+        return posts.stream()
+                .map(this::convertToMinimal)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public BasePostMinimalDTO convertToMinimal(POST post) {
+        return new BasePostMinimalDTO().convertFrom(post);
+    }
+
+    @Override
+    public Page<POST> pageLatest(int top) {
+        PageRequest latestPageable = PageRequest.of(0, top, Sort.by(Sort.Direction.DESC, "createTime"));
+        return listAll(latestPageable);
+    }
+
+    @Override
+    public Page<POST> pageBy(Pageable pageable) {
+        return listAll(pageable);
+    }
+
+
+    @Override
+    public Page<POST> pageBy(PostStatus status, Pageable pageable) {
+        return basePostRepository.findAllByStatus(status, pageable);
     }
 
     @NonNull

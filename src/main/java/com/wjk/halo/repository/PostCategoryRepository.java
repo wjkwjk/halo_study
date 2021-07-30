@@ -6,7 +6,9 @@ import com.wjk.halo.repository.base.BaseRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.lang.NonNull;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 public interface PostCategoryRepository extends BaseRepository<PostCategory, Integer> {
 
@@ -22,5 +24,12 @@ public interface PostCategoryRepository extends BaseRepository<PostCategory, Int
 
     @NonNull
     List<PostCategory> deleteByCategoryId(@NonNull Integer categoryId);
+
+    @NonNull
+    List<PostCategory> findAllByPostIdIn(@NonNull Collection<Integer> postIds);
+
+    @NonNull
+    @Query("select postCategory.categoryId from PostCategory postCategory where postCategory.postId = ?1")
+    Set<Integer> findAllCategoryIdsByPostId(@NonNull Integer postId);
 
 }

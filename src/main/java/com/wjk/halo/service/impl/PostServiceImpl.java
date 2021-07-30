@@ -2,24 +2,37 @@ package com.wjk.halo.service.impl;
 
 import cn.hutool.core.date.DateUtil;
 import com.wjk.halo.event.logger.LogEvent;
+import com.wjk.halo.model.dto.post.BasePostMinimalDTO;
+import com.wjk.halo.model.dto.post.BasePostSimpleDTO;
 import com.wjk.halo.model.entity.*;
 import com.wjk.halo.model.enums.LogType;
 import com.wjk.halo.model.enums.PostPermalinkType;
+import com.wjk.halo.model.enums.PostStatus;
+import com.wjk.halo.model.params.PostQuery;
 import com.wjk.halo.model.vo.PostDetailVO;
+import com.wjk.halo.model.vo.PostListVO;
 import com.wjk.halo.repository.PostRepository;
 import com.wjk.halo.repository.base.BasePostRepository;
 import com.wjk.halo.service.*;
 import com.wjk.halo.utils.ServiceUtils;
+import javafx.geometry.Pos;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
-import java.util.List;
-import java.util.Set;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Subquery;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.springframework.data.domain.Sort.Direction.DESC;
 import static com.wjk.halo.model.support.HaloConst.URL_SEPARATOR;
@@ -163,6 +176,166 @@ public class PostServiceImpl extends BasePostServiceImpl<Post> implements PostSe
         return createdPost;
     }
 
+    @Override
+    public Page<Post> pageBy(PostQuery postQuery, Pageable pageable) {
+        return postRepository.findAll(buildSpecByQuery(postQuery), pageable);
+    }
+
+    @Override
+    public Page<Post> pageBy(String keyword, Pageable pageable) {
+        PostQuery postQuery = new PostQuery();
+        postQuery.setKeyword(keyword);
+        postQuery.setStatus(PostStatus.PUBLISHED);
+
+        return postRepository.findAll(buildSpecByQuery(postQuery), pageable);
+    }
+
+    @Override
+    public Page<PostListVO> convertToListVo(Page<Post> postPage) {
+        List<Post> posts = postPage.getContent();
+
+        Set<Integer> postIds = ServiceUtils.fetchProperty(posts, Post::getId);
+
+        // Get tag list map
+        Map<Integer, List<Tag>> tagListMap = postTagService.listTagListMapBy(postIds);
+
+        // Get category list map
+        Map<Integer, List<Category>> categoryListMap = postCategoryService.listCategoryListMap(postIds);
+
+        // Get comment count
+        Map<Integer, Long> commentCountMap = postCommentService.countByPostIds(postIds);
+
+        // Get post meta list map
+        Map<Integer, List<PostMeta>> postMetaListMap = postMetaService.listPostMetaAsMap(postIds);
+
+        return postPage.map(post -> {
+            PostListVO postListVO = new PostListVO().convertFrom(post);
+
+            if (StringUtils.isBlank(postListVO.getSummary())){
+                postListVO.setSummary(generateSummary(post.getFormatContent()));
+            }
+
+            Optional.ofNullable(tagListMap.get(post.getId())).orElseGet(LinkedList::new);
+
+            postListVO.setTags(Optional.ofNullable(tagListMap.get(post.getId()))
+                .orElseGet(LinkedList::new)
+                .stream()
+                .filter(Objects::nonNull)
+                .map(tagService::convertTo)
+                .collect(Collectors.toList()));
+
+            postListVO.setCategories(Optional.ofNullable(categoryListMap.get(post.getId()))
+                .orElseGet(LinkedList::new)
+                .stream()
+                .filter(Objects::nonNull)
+                .map(categoryService::convertTo)
+                .collect(Collectors.toList()));
+
+            List<PostMeta> metas = Optional.ofNullable(postMetaListMap.get(post.getId()))
+                    .orElseGet(LinkedList::new);
+            postListVO.setMetas(postMetaService.convertToMap(metas));
+
+            postListVO.setCommentCount(commentCountMap.getOrDefault(post.getId(), 0L));
+
+            postListVO.setFullPath(buildFullPath(post));
+
+            return postListVO;
+        });
+
+    }
+
+    @Override
+    public List<PostListVO> convertToListVo(List<Post> posts) {
+
+        Set<Integer> postIds = ServiceUtils.fetchProperty(posts, Post::getId);
+
+        Map<Integer, List<Tag>> tagListMap = postTagService.listTagListMapBy(postIds);
+
+        Map<Integer, List<Category>> categoryListMap = postCategoryService.listCategoryListMap(postIds);
+
+        Map<Integer, Long> commentCountMap = postCommentService.countByPostIds(postIds);
+
+        Map<Integer, List<PostMeta>> postMetaListMap = postMetaService.listPostMetaAsMap(postIds);
+
+        return posts.stream().map(post -> {
+            PostListVO postListVO = new PostListVO().convertFrom(post);
+
+            if (StringUtils.isBlank(postListVO.getSummary())){
+                postListVO.setSummary(generateSummary(post.getFormatContent()));
+            }
+
+            Optional.ofNullable(tagListMap.get(post.getId())).orElseGet(LinkedList::new);
+
+            postListVO.setTags(Optional.ofNullable(tagListMap.get(post.getId()))
+                .orElseGet(LinkedList::new)
+                .stream()
+                .filter(Objects::nonNull)
+                .map(tagService::convertTo)
+                .collect(Collectors.toList()));
+
+            postListVO.setCategories(Optional.ofNullable(categoryListMap.get(post.getId()))
+                    .orElseGet(LinkedList::new)
+                    .stream()
+                    .filter(Objects::nonNull)
+                    .map(categoryService::convertTo)
+                    .collect(Collectors.toList()));
+
+            // Set post metas
+            List<PostMeta> metas = Optional.ofNullable(postMetaListMap.get(post.getId()))
+                    .orElseGet(LinkedList::new);
+            postListVO.setMetas(postMetaService.convertToMap(metas));
+
+            // Set comment count
+            postListVO.setCommentCount(commentCountMap.getOrDefault(post.getId(), 0L));
+
+            postListVO.setFullPath(buildFullPath(post));
+
+            return postListVO;
+
+        }).collect(Collectors.toList());
+    }
+
+    @Override
+    public PostDetailVO convertToDetailVo(Post post) {
+        List<Tag> tags = postTagService.listTagsBy(post.getId());
+
+        List<Category> categories = postCategoryService.listCategoriesBy(post.getId());
+
+        List<PostMeta> metas = postMetaService.listBy(post.getId());
+
+        return convertTo(post, tags, categories, metas);
+    }
+
+    @NonNull
+    private Specification<Post> buildSpecByQuery(@NonNull PostQuery postQuery){
+        return (Specification<Post>) (root, query, criteriaBuilder) -> {
+            List<Predicate> predicates = new LinkedList<>();
+            if (postQuery.getStatus() != null){
+                predicates.add(criteriaBuilder.equal(root.get("status"), postQuery.getStatus()));
+            }
+
+            if (postQuery.getCategoryId() != null){
+                Subquery<Post> postSubquery = query.subquery(Post.class);
+                Root<PostCategory> postCategoryRoot = postSubquery.from(PostCategory.class);
+                postSubquery.select(postCategoryRoot.get("postId"));
+                postSubquery.where(
+                        criteriaBuilder.equal(root.get("id"), postCategoryRoot.get("postId")),
+                        criteriaBuilder.equal(postCategoryRoot.get("categoryId"), postQuery.getCategoryId()));
+                predicates.add(criteriaBuilder.exists(postSubquery));
+            }
+
+            if (postQuery.getKeyword() != null){
+                String likeCondition = String.format("%%%s%%", StringUtils.strip(postQuery.getKeyword()));
+
+                Predicate titleLike = criteriaBuilder.like(root.get("title"), likeCondition);
+                Predicate originalContentLike = criteriaBuilder.like(root.get("originalContent"), likeCondition);
+
+                predicates.add(criteriaBuilder.or(titleLike, originalContentLike));
+            }
+
+            return query.where(predicates.toArray(new Predicate[0])).getRestriction();
+        };
+    }
 
     private PostDetailVO createOrUpdate(@NonNull Post post, Set<Integer> tagIds, Set<Integer> categoryIds, Set<PostMeta> metas){
         //创建或者更新文章
@@ -192,4 +365,34 @@ public class PostServiceImpl extends BasePostServiceImpl<Post> implements PostSe
 
     }
 
+    @Override
+    public BasePostSimpleDTO convertToSimple(Post post) {
+        BasePostSimpleDTO basePostSimpleDTO = new BasePostSimpleDTO().convertFrom(post);
+
+        if (StringUtils.isBlank(basePostSimpleDTO.getSummary())){
+            basePostSimpleDTO.setSummary(generateSummary(post.getFormatContent()));
+        }
+        basePostSimpleDTO.setFullPath(buildFullPath(post));
+        return basePostSimpleDTO;
+    }
+
+    @Override
+    public BasePostMinimalDTO convertToMinimal(Post post) {
+        BasePostMinimalDTO basePostMinimalDTO = new BasePostMinimalDTO().convertFrom(post);
+
+        basePostMinimalDTO.setFullPath(buildFullPath(post));
+
+        return basePostMinimalDTO;
+    }
+
+    @Override
+    public List<BasePostMinimalDTO> convertToMinimal(List<Post> posts) {
+        if (CollectionUtils.isEmpty(posts)){
+            return Collections.emptyList();
+        }
+        return posts.stream()
+                .map(this::convertToMinimal)
+                .collect(Collectors.toList());
+
+    }
 }
