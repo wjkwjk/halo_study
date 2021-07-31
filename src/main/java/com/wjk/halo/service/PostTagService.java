@@ -1,8 +1,10 @@
 package com.wjk.halo.service;
 
+import com.wjk.halo.model.dto.TagWithPostCountDTO;
 import com.wjk.halo.model.entity.PostTag;
 import com.wjk.halo.model.entity.Tag;
 import com.wjk.halo.service.base.CrudService;
+import org.springframework.data.domain.Sort;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,4 +32,7 @@ public interface PostTagService extends CrudService<PostTag, Integer> {
 
     @NonNull
     List<Tag> listTagsBy(@NonNull Integer postId);
+
+    @NonNull
+    List<TagWithPostCountDTO> listTagWithCountDtos(@NonNull Sort sort);
 }

@@ -11,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.lang.NonNull;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -37,4 +38,10 @@ public interface PostService extends BasePostService<Post> {
 
     @NonNull
     PostDetailVO convertToDetailVo(@NonNull Post post);
+
+    @NonNull
+    PostDetailVO updateBy(@NonNull Post postToUpdate, Set<Integer> tagIds, Set<Integer> categoryIds, Set<PostMeta> metas, boolean autoSave);
+
+    @NonNull
+    List<Post> removeByIds(@NonNull Collection<Integer> ids);
 }

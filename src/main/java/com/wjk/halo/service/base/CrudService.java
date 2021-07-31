@@ -46,6 +46,7 @@ public interface CrudService<DOMAIN, ID> {
     @NonNull
     List<DOMAIN> listAllByIds(@Nullable Collection<ID> ids);
 
+
     @Transactional
     void removeAll(@NonNull Collection<DOMAIN> domains);
 
@@ -65,5 +66,8 @@ public interface CrudService<DOMAIN, ID> {
 
     @Transactional
     void remove(@NonNull DOMAIN domain);
+
+    @Transactional
+    void removeInBatch(@NonNull Collection<ID> ids);
 
 }

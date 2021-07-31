@@ -130,5 +130,14 @@ public abstract class AbstractCrudService<DOMAIN, ID> implements CrudService<DOM
         repository.delete(domain);
     }
 
+    @Override
+    public void removeInBatch(Collection<ID> ids) {
+        if (CollectionUtils.isEmpty(ids)){
+            log.debug(domainName + " id collection is empty");
+            return;
+        }
+        repository.deleteByIdIn(ids);
+    }
+
 
 }

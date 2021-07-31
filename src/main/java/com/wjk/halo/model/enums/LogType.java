@@ -6,6 +6,8 @@ public enum LogType implements ValueEnum<Integer>{
 
     POST_PUBLISHED(5),
 
+    POST_EDITED(15),
+
     LOGIN_FAILED(35),
 
     LOGIN_IN(25),

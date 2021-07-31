@@ -4,7 +4,9 @@ import com.wjk.halo.model.entity.BasePost;
 import com.wjk.halo.model.enums.PostStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.lang.NonNull;
 
 public interface BasePostRepository<POST extends BasePost> extends BaseRepository<POST, Integer>{
@@ -23,4 +25,20 @@ public interface BasePostRepository<POST extends BasePost> extends BaseRepositor
 
     @NonNull
     Page<POST> findAllByStatus(@NonNull PostStatus status, @NonNull Pageable pageable);
+
+    @Modifying
+    @Query("update BasePost p set p.likes = p.likes + :likes where p.id = :postId")
+    int updateLikes(@Param("likes") long likes, @Param("postId") @NonNull Integer postId);
+
+    @Modifying
+    @Query("update BasePost p set p.status = :status where p.id = :postId")
+    int updateStatus(@Param("status") @NonNull PostStatus status, @Param("postId") @NonNull Integer postId);
+
+    @Modifying
+    @Query("update BasePost p set p.formatContent = :formatContent where p.id = :postId")
+    int updateFormatContent(@Param("formatContent") @NonNull String formatContent, @Param("postId") @NonNull Integer postId);
+
+    @Modifying
+    @Query("update BasePost p set p.originalContent = :content where p.id = :postId")
+    int updateOriginalContent(@Param("content") @NonNull String content, @Param("postId") @NonNull Integer postId);
 }

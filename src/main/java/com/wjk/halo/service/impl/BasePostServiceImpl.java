@@ -1,6 +1,8 @@
 package com.wjk.halo.service.impl;
 
 import com.wjk.halo.exception.AlreadyExistsException;
+import com.wjk.halo.exception.BadRequestException;
+import com.wjk.halo.exception.ServiceException;
 import com.wjk.halo.model.dto.post.BasePostMinimalDTO;
 import com.wjk.halo.model.dto.post.BasePostSimpleDTO;
 import com.wjk.halo.model.entity.BasePost;
@@ -137,6 +139,76 @@ public abstract class BasePostServiceImpl<POST extends BasePost> extends Abstrac
     public Page<POST> pageBy(PostStatus status, Pageable pageable) {
         return basePostRepository.findAllByStatus(status, pageable);
     }
+
+    @Override
+    public void increaseLike(Integer postId) {
+        increaseLike(1L, postId);
+    }
+
+    @Override
+    @Transactional
+    public void increaseLike(long likes, Integer postId) {
+        long affectedRows = basePostRepository.updateLikes(likes, postId);
+
+        if (affectedRows != 1){
+            log.error("Post with id: [{}] may not be found", postId);
+            throw new BadRequestException("Failed to increase likes " + likes + " for post with id " + postId);
+        }
+    }
+
+    @Override
+    public POST updateStatus(PostStatus status, Integer postId) {
+        POST post = getById(postId);
+
+        if (!status.equals(post.getStatus())){
+            int updatedRows = basePostRepository.updateStatus(status, postId);
+            if (updatedRows != 1){
+                throw new ServiceException("Failed to update post status of post with id " + postId);
+            }
+            post.setStatus(status);
+        }
+
+        if (PostStatus.PUBLISHED.equals(status)){
+            String formatContent = MarkdownUtils.renderHtml(post.getOriginalContent());
+            int updatedRows = basePostRepository.updateFormatContent(formatContent, postId);
+
+            if (updatedRows != 1){
+                throw new ServiceException("Failed to update post format content of post with id " + postId);
+            }
+
+            post.setFormatContent(formatContent);
+        }
+        return post;
+
+    }
+
+    @Override
+    public List<POST> updateStatusByIds(List<Integer> ids, PostStatus status) {
+        if (CollectionUtils.isEmpty(ids)){
+            return Collections.emptyList();
+        }
+        return ids.stream().map(id -> {
+            return updateStatus(status, id);
+        }).collect(Collectors.toList());
+    }
+
+    @Override
+    public POST updateDraftContent(String content, Integer postId) {
+        if (content == null){
+            content = "";
+        }
+        POST post = getById(postId);
+
+        if (!StringUtils.equals(content, post.getOriginalContent())){
+            int updateRows = basePostRepository.updateOriginalContent(content, postId);
+            if (updateRows != 1){
+                throw new ServiceException("Failed to update original content of post with id " + postId);
+            }
+            post.setOriginalContent(content);
+        }
+        return post;
+    }
+
 
     @NonNull
     protected String generateSummary(@NonNull String htmlContent){

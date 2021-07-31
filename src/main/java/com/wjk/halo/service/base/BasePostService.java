@@ -44,4 +44,16 @@ public interface BasePostService<POST extends BasePost> extends CrudService<POST
     @NonNull
     Page<POST> pageBy(@NonNull PostStatus status, @NonNull Pageable pageable);
 
+    void increaseLike(@NonNull Integer postId);
+
+    void increaseLike(long likes, @NonNull Integer postId);
+
+    @NonNull
+    POST updateStatus(@NonNull PostStatus status, @NonNull Integer postId);
+
+    @NonNull
+    List<POST> updateStatusByIds(@NonNull List<Integer> ids, @NonNull PostStatus status);
+
+    @NonNull
+    POST updateDraftContent(@Nullable String content, @NonNull Integer postId);
 }

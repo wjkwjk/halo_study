@@ -14,6 +14,7 @@ import com.wjk.halo.model.vo.PostListVO;
 import com.wjk.halo.repository.PostRepository;
 import com.wjk.halo.repository.base.BasePostRepository;
 import com.wjk.halo.service.*;
+import com.wjk.halo.utils.DateUtils;
 import com.wjk.halo.utils.ServiceUtils;
 import javafx.geometry.Pos;
 import lombok.extern.slf4j.Slf4j;
@@ -304,6 +305,27 @@ public class PostServiceImpl extends BasePostServiceImpl<Post> implements PostSe
         List<PostMeta> metas = postMetaService.listBy(post.getId());
 
         return convertTo(post, tags, categories, metas);
+    }
+
+    @Override
+    @Transactional
+    public PostDetailVO updateBy(Post postToUpdate, Set<Integer> tagIds, Set<Integer> categoryIds, Set<PostMeta> metas, boolean autoSave) {
+        postToUpdate.setEditTime(DateUtils.now());
+        PostDetailVO updatedPost = createOrUpdate(postToUpdate, tagIds, categoryIds, metas);
+        if (!autoSave){
+            LogEvent logEvent = new LogEvent(this, updatedPost.getId().toString(),
+                    LogType.POST_EDITED, updatedPost.getTitle());
+            eventPublisher.publishEvent(logEvent);
+        }
+        return updatedPost;
+    }
+
+    @Override
+    public List<Post> removeByIds(Collection<Integer> ids) {
+        if (CollectionUtils.isEmpty(ids)){
+            return Collections.emptyList();
+        }
+        return ids.stream().map(this::removeById).collect(Collectors.toList());
     }
 
     @NonNull
