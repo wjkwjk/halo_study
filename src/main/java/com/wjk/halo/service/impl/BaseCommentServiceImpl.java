@@ -10,6 +10,7 @@ import com.wjk.halo.model.entity.BaseComment;
 import com.wjk.halo.model.enums.CommentStatus;
 import com.wjk.halo.model.params.BaseCommentParam;
 import com.wjk.halo.model.params.CommentQuery;
+import com.wjk.halo.model.projection.CommentCountProjection;
 import com.wjk.halo.model.properties.CommentProperties;
 import com.wjk.halo.model.vo.BaseCommentVO;
 import com.wjk.halo.model.vo.BaseCommentWithParentVO;
@@ -24,6 +25,7 @@ import com.wjk.halo.service.base.AbstractCrudService;
 import com.wjk.halo.service.base.BaseCommentService;
 import com.wjk.halo.utils.ServiceUtils;
 import com.wjk.halo.utils.ServletUtils;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -31,12 +33,12 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpHeaders;
+import org.springframework.util.CollectionUtils;
 
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import javax.persistence.criteria.Predicate;
+import java.util.*;
 
 @Slf4j
 public abstract class BaseCommentServiceImpl<COMMENT extends BaseComment> extends AbstractCrudService<COMMENT, Long> implements BaseCommentService<COMMENT> {
@@ -79,12 +81,12 @@ public abstract class BaseCommentServiceImpl<COMMENT extends BaseComment> extend
 
     @Override
     public Page<COMMENT> pageBy(CommentStatus status, Pageable pageable) {
-        return null;
+        return baseCommentRepository.findAllByStatus(status, pageable);
     }
 
     @Override
     public Page<COMMENT> pageBy(CommentQuery commentQuery, Pageable pageable) {
-        return null;
+        return baseCommentRepository.findAll(buildSpecByQuery(commentQuery), pageable);
     }
 
     @Override
@@ -109,7 +111,12 @@ public abstract class BaseCommentServiceImpl<COMMENT extends BaseComment> extend
 
     @Override
     public Map<Integer, Long> countByPostIds(Collection<Integer> postIds) {
-        return null;
+        if (CollectionUtils.isEmpty(postIds)){
+            return Collections.emptyMap();
+        }
+        List<CommentCountProjection> commentCountProjections = baseCommentRepository.countByPostIds(postIds);
+
+        return ServiceUtils.convertToMap(commentCountProjections, CommentCountProjection::getPostId, CommentCountProjection::getCount);
     }
 
     @Override
@@ -251,4 +258,28 @@ public abstract class BaseCommentServiceImpl<COMMENT extends BaseComment> extend
     public List<BaseCommentDTO> replaceUrl(String oldUrl, String newUrl) {
         return null;
     }
+
+    @NonNull
+    protected Specification<COMMENT> buildSpecByQuery(@NonNull CommentQuery commentQuery){
+        return (Specification<COMMENT>) (root, query, criteriaBuilder) -> {
+            List<Predicate> predicates = new LinkedList<>();
+
+            if (commentQuery.getStatus() != null){
+                predicates.add(criteriaBuilder.equal(root.get("status"), commentQuery.getStatus()));
+            }
+
+            if (commentQuery.getKeyword() != null){
+                String likeCondition = String.format("%%%s%%", StringUtils.strip(commentQuery.getKeyword()));
+
+                Predicate authorLike = criteriaBuilder.like(root.get("author"), likeCondition);
+                Predicate contentLike = criteriaBuilder.like(root.get("content"), likeCondition);
+                Predicate emailLike = criteriaBuilder.like(root.get("email"), likeCondition);
+
+                predicates.add(criteriaBuilder.or(authorLike, contentLike, emailLike));
+            }
+            return query.where(predicates.toArray(new Predicate[0])).getRestriction();
+
+        };
+    }
+
 }

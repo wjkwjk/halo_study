@@ -1,6 +1,7 @@
 package com.wjk.halo.service.impl;
 
 import com.wjk.halo.event.logger.LogEvent;
+import com.wjk.halo.model.dto.IndependentSheetDTO;
 import com.wjk.halo.model.dto.post.BasePostMinimalDTO;
 import com.wjk.halo.model.entity.Sheet;
 import com.wjk.halo.model.entity.SheetMeta;
@@ -8,10 +9,7 @@ import com.wjk.halo.model.enums.LogType;
 import com.wjk.halo.model.vo.SheetDetailVO;
 import com.wjk.halo.model.vo.SheetListVO;
 import com.wjk.halo.repository.SheetRepository;
-import com.wjk.halo.service.OptionService;
-import com.wjk.halo.service.SheetCommentService;
-import com.wjk.halo.service.SheetMetaService;
-import com.wjk.halo.service.SheetService;
+import com.wjk.halo.service.*;
 import com.wjk.halo.utils.ServiceUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -21,6 +19,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -41,10 +40,13 @@ public class SheetServiceImpl extends BasePostServiceImpl<Sheet> implements Shee
 
     private final SheetMetaService sheetMetaService;
 
+    private final ThemeService themeService;
+
     public SheetServiceImpl(SheetRepository sheetRepository,
                             ApplicationEventPublisher eventPublisher,
                             SheetCommentService sheetCommentService,
                             SheetMetaService sheetMetaService,
+                            ThemeService themeService,
                             OptionService optionService) {
         super(sheetRepository, optionService);
         this.sheetRepository = sheetRepository;
@@ -52,6 +54,7 @@ public class SheetServiceImpl extends BasePostServiceImpl<Sheet> implements Shee
         this.eventPublisher = eventPublisher;
         this.sheetMetaService = sheetMetaService;
         this.sheetCommentService = sheetCommentService;
+        this.themeService = themeService;
     }
 
     @Override
@@ -101,6 +104,50 @@ public class SheetServiceImpl extends BasePostServiceImpl<Sheet> implements Shee
 
             return sheetListVO;
         });
+    }
+
+    @Override
+    public List<IndependentSheetDTO> listIndependentSheets() {
+        String context = (optionService.isEnabledAbsolutePath() ? optionService.getBlogBaseUrl() : "") + "/";
+
+        IndependentSheetDTO linkSheet = new IndependentSheetDTO();
+        linkSheet.setId(1);
+        linkSheet.setTitle("友情链接");
+        linkSheet.setFullPath(context + optionService.getLinksPrefix());
+        linkSheet.setRouteName("LinkList");
+        linkSheet.setAvailable(themeService.templateExists("links.ftl"));
+
+        IndependentSheetDTO photoSheet = new IndependentSheetDTO();
+        photoSheet.setId(2);
+        photoSheet.setTitle("图库页面");
+        photoSheet.setFullPath(context + optionService.getPhotosPrefix());
+        photoSheet.setRouteName("PhotoList");
+        photoSheet.setAvailable(themeService.templateExists("photos.ftl"));
+
+        IndependentSheetDTO journalSheet = new IndependentSheetDTO();
+        journalSheet.setId(3);
+        journalSheet.setTitle("日志页面");
+        journalSheet.setFullPath(context + optionService.getJournalsPrefix());
+        journalSheet.setRouteName("JournalList");
+        journalSheet.setAvailable(themeService.templateExists("journals.ftl"));
+
+        return Arrays.asList(linkSheet, photoSheet, journalSheet);
+
+    }
+
+    @Override
+    public Sheet updateBy(Sheet sheet, Set<SheetMeta> metas, boolean autoSave) {
+        Sheet updatedSheet = createOrUpdateBy(sheet);
+
+        List<SheetMeta> sheetMetaList = sheetMetaService.createOrUpdateByPostId(updatedSheet.getId(), metas);
+        log.debug("Created sheet metas: [{}]", sheetMetaList);
+
+        if (!autoSave){
+            LogEvent logEvent = new LogEvent(this, updatedSheet.getId().toString(), LogType.SHEET_EDITED, updatedSheet.getTitle());
+            eventPublisher.publishEvent(logEvent);
+        }
+        return updatedSheet;
+
     }
 
     @NonNull

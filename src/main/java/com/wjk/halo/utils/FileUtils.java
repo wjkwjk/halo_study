@@ -83,6 +83,10 @@ public class FileUtils {
         }
     }
 
+    public static void checkDirectoryTraversal(@NonNull String parentPath, @NonNull String pathToCheck){
+        checkDirectoryTraversal(Paths.get(parentPath), Paths.get(pathToCheck));
+    }
+
     public static void checkDirectoryTraversal(@NonNull Path parentPath, @NonNull Path pathToCheck){
         if (pathToCheck.normalize().startsWith(parentPath)){
             return;

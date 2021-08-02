@@ -1,5 +1,6 @@
 package com.wjk.halo.service;
 
+import com.wjk.halo.model.dto.IndependentSheetDTO;
 import com.wjk.halo.model.entity.Sheet;
 import com.wjk.halo.model.entity.SheetMeta;
 import com.wjk.halo.model.vo.SheetDetailVO;
@@ -8,6 +9,7 @@ import com.wjk.halo.service.base.BasePostService;
 import org.springframework.data.domain.Page;
 import org.springframework.lang.NonNull;
 
+import java.util.List;
 import java.util.Set;
 
 public interface SheetService extends BasePostService<Sheet> {
@@ -22,4 +24,11 @@ public interface SheetService extends BasePostService<Sheet> {
 
     @NonNull
     Page<SheetListVO> convertToListVo(@NonNull Page<Sheet> sheetPage);
+
+    @NonNull
+    List<IndependentSheetDTO> listIndependentSheets();
+
+    Sheet updateBy(@NonNull Sheet sheet, Set<SheetMeta> metas, boolean autoSave);
+
+
 }

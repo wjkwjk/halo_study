@@ -18,6 +18,8 @@ public enum LogType implements ValueEnum<Integer>{
 
     SHEET_PUBLISHED(50),
 
+    SHEET_EDITED(55),
+
     LOGGED_OUT(30),
 
     MFA_UPDATED(65)

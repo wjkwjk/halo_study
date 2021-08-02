@@ -111,4 +111,10 @@ public interface OptionService extends CrudService<Option, Integer> {
     Map<String, Object> listOptions(@Nullable List<String> keys);
 
     String getSheetPrefix();
+
+    String getLinksPrefix();
+
+    String getPhotosPrefix();
+
+    String getJournalsPrefix();
 }

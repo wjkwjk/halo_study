@@ -123,6 +123,7 @@ public abstract class BasePostServiceImpl<POST extends BasePost> extends Abstrac
         return new BasePostMinimalDTO().convertFrom(post);
     }
 
+    //page是页索引，top每页大小
     @Override
     public Page<POST> pageLatest(int top) {
         PageRequest latestPageable = PageRequest.of(0, top, Sort.by(Sort.Direction.DESC, "createTime"));
@@ -141,6 +142,7 @@ public abstract class BasePostServiceImpl<POST extends BasePost> extends Abstrac
     }
 
     @Override
+    @Transactional
     public void increaseLike(Integer postId) {
         increaseLike(1L, postId);
     }
@@ -167,7 +169,7 @@ public abstract class BasePostServiceImpl<POST extends BasePost> extends Abstrac
             }
             post.setStatus(status);
         }
-
+        //如果更新为published状态，则将原始的内容设置为当前的内容
         if (PostStatus.PUBLISHED.equals(status)){
             String formatContent = MarkdownUtils.renderHtml(post.getOriginalContent());
             int updatedRows = basePostRepository.updateFormatContent(formatContent, postId);

@@ -1,7 +1,9 @@
 package com.wjk.halo.controller.admin.api;
 
 import com.wjk.halo.cache.AbstractStringCacheStore;
+import com.wjk.halo.model.dto.IndependentSheetDTO;
 import com.wjk.halo.model.entity.Sheet;
+import com.wjk.halo.model.params.SheetParam;
 import com.wjk.halo.model.vo.SheetDetailVO;
 import com.wjk.halo.model.vo.SheetListVO;
 import com.wjk.halo.service.OptionService;
@@ -10,10 +12,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/admin/sheets")
@@ -45,6 +47,29 @@ public class SheetController {
         return sheetService.convertToListVo(sheetPage);
     }
 
+    @GetMapping("independent")
+    public List<IndependentSheetDTO> independentSheets(){
+        return sheetService.listIndependentSheets();
+    }
 
+    @PostMapping
+    public SheetDetailVO createBy(@RequestBody @Valid SheetParam sheetParam,
+                                  @RequestParam(value = "autoSave", required = false, defaultValue = "false") Boolean autoSave){
+        Sheet sheet = sheetService.createBy(sheetParam.convertTo(), sheetParam.getSheetMetas(), autoSave);
+        return sheetService.convertToDetailVo(sheet);
+    }
 
+    @PutMapping("{sheetId:\\d+}")
+    public SheetDetailVO updateBy(@PathVariable("sheetId") Integer sheetId,
+                                  @RequestBody @Valid SheetParam sheetParam,
+                                  @RequestParam(value = "autoSave", required = false, defaultValue = "false") Boolean autoSave){
+        Sheet sheetToUpdate = sheetService.getById(sheetId);
+
+        sheetParam.update(sheetToUpdate);
+
+        Sheet sheet = sheetService.updateBy(sheetToUpdate, sheetParam.getSheetMetas(), autoSave);
+
+        return sheetService.convertToDetailVo(sheet);
+    }
 }
+

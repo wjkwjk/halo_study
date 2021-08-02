@@ -54,12 +54,12 @@ public class PostController {
         }
         return postService.convertToSimple(postPage);
     }
-
+    //获得最新的top个post
     @GetMapping("latest")
     public List<BasePostMinimalDTO> pageLatest(@RequestParam(name = "top", defaultValue = "10") int top){
         return postService.convertToMinimal(postService.pageLatest(top).getContent());
     }
-
+    //根据status查询，基本跟pageBy一样，只不过一个是自己输入查询条件，这个是只能以status查询
     @GetMapping("status/{status}")
     public Page<? extends BasePostSimpleDTO> pageByStatus(@PathVariable(name = "status") PostStatus status,
                                                           @RequestParam(value = "more", required = false, defaultValue = "false") Boolean more,

@@ -194,7 +194,7 @@ public class PostServiceImpl extends BasePostServiceImpl<Post> implements PostSe
     @Override
     public Page<PostListVO> convertToListVo(Page<Post> postPage) {
         List<Post> posts = postPage.getContent();
-
+        //获取id
         Set<Integer> postIds = ServiceUtils.fetchProperty(posts, Post::getId);
 
         // Get tag list map

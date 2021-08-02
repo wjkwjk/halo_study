@@ -65,7 +65,7 @@ public class PostCategoryServiceImpl extends AbstractCrudService<PostCategory, I
         });
 
         postCategoriesStaging.forEach(postCategoryStaging -> {
-            if (postCategories.contains(postCategoryStaging)){
+            if (!postCategories.contains(postCategoryStaging)){
                 postCategoriesToCreate.add(postCategoryStaging);
             }
         });
@@ -131,7 +131,7 @@ public class PostCategoryServiceImpl extends AbstractCrudService<PostCategory, I
 
         // Find all categories
         List<Category> categories = categoryRepository.findAllById(categoryIds);
-
+        //用Category的Id作为键，Category本身作为值
         // Convert to category map
         Map<Integer, Category> categoryMap = ServiceUtils.convertToMap(categories, Category::getId);
 
