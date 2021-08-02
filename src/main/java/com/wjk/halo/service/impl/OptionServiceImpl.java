@@ -381,6 +381,11 @@ public class OptionServiceImpl extends AbstractCrudService<Option, Integer> impl
         return result;
     }
 
+    @Override
+    public String getSheetPrefix() {
+        return getByPropertyOrDefault(PermalinkProperties.SHEET_PREFIX, String.class, PermalinkProperties.SHEET_PREFIX.defaultValue());
+    }
+
     @NonNull
     private Specification<Option> buildSpecByQuery(@NonNull OptionQuery optionQuery){
         return (Specification<Option>) (root, query, criteriaBuilder) ->{

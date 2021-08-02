@@ -109,4 +109,6 @@ public interface OptionService extends CrudService<Option, Integer> {
 
     @NonNull
     Map<String, Object> listOptions(@Nullable List<String> keys);
+
+    String getSheetPrefix();
 }
