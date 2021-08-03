@@ -5,13 +5,18 @@ import cn.hutool.extra.servlet.ServletUtil;
 import com.sun.org.apache.xpath.internal.operations.Bool;
 import com.wjk.halo.event.comment.CommentNewEvent;
 import com.wjk.halo.event.comment.CommentReplyEvent;
+import com.wjk.halo.exception.BadRequestException;
+import com.wjk.halo.exception.NotFoundException;
 import com.wjk.halo.model.dto.BaseCommentDTO;
 import com.wjk.halo.model.entity.BaseComment;
+import com.wjk.halo.model.entity.User;
 import com.wjk.halo.model.enums.CommentStatus;
 import com.wjk.halo.model.params.BaseCommentParam;
 import com.wjk.halo.model.params.CommentQuery;
 import com.wjk.halo.model.projection.CommentCountProjection;
+import com.wjk.halo.model.properties.BlogProperties;
 import com.wjk.halo.model.properties.CommentProperties;
+import com.wjk.halo.model.support.CommentPage;
 import com.wjk.halo.model.vo.BaseCommentVO;
 import com.wjk.halo.model.vo.BaseCommentWithParentVO;
 import com.wjk.halo.model.vo.CommentWithHasChildrenVO;
@@ -25,6 +30,7 @@ import com.wjk.halo.service.base.AbstractCrudService;
 import com.wjk.halo.service.base.BaseCommentService;
 import com.wjk.halo.utils.ServiceUtils;
 import com.wjk.halo.utils.ServletUtils;
+import com.wjk.halo.utils.ValidationUtils;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -35,10 +41,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpHeaders;
+import org.springframework.lang.Nullable;
 import org.springframework.util.CollectionUtils;
 
 import javax.persistence.criteria.Predicate;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 public abstract class BaseCommentServiceImpl<COMMENT extends BaseComment> extends AbstractCrudService<COMMENT, Long> implements BaseCommentService<COMMENT> {
@@ -91,7 +99,9 @@ public abstract class BaseCommentServiceImpl<COMMENT extends BaseComment> extend
 
     @Override
     public Page<BaseCommentVO> pageVosAllBy(Integer postId, Pageable pageable) {
-        return null;
+        log.debug("Getting comment tree view of post: [{}], page info: [{}]", postId, pageable);
+        List<COMMENT> comments = baseCommentRepository.findAllByPostId(postId);
+        return pageVosBy(comments, pageable);
     }
 
     @Override
@@ -101,12 +111,80 @@ public abstract class BaseCommentServiceImpl<COMMENT extends BaseComment> extend
 
     @Override
     public Page<BaseCommentVO> pageVosBy(List<COMMENT> comments, Pageable pageable) {
-        return null;
+        Comparator<BaseCommentVO> commentComparator = buildCommentComparator(pageable.getSortOr(Sort.by(Sort.Direction.DESC, "createTime")));
+
+        List<BaseCommentVO> topComments = convertToVo(comments, commentComparator);
+
+        List<BaseCommentVO> pageContent;
+
+        int startIndex = pageable.getPageNumber() * pageable.getPageSize();
+        if (startIndex >= topComments.size() || startIndex < 0){
+            pageContent = Collections.emptyList();
+        }else {
+            int endIndex = startIndex + pageable.getPageSize();
+            if (endIndex > topComments.size()){
+                endIndex = topComments.size();
+            }
+
+
+            log.debug("Top comments size: [{}]", topComments.size());
+            log.debug("Start index: [{}]", startIndex);
+            log.debug("End index: [{}]", endIndex);
+
+            pageContent = topComments.subList(startIndex, endIndex);
+
+        }
+
+        return new CommentPage<>(pageContent, pageable, topComments.size(), comments.size());
+
+    }
+
+    protected Comparator<BaseCommentVO> buildCommentComparator(Sort sort){
+        return (currentComment, toCompareComment) -> {
+            Sort.Order order = sort.filter(anOrder -> "id".equals(anOrder.getProperty()))
+                    .get()
+                    .findFirst()
+                    .orElseGet(() -> Sort.Order.desc("id"));
+
+            int sign = order.getDirection().isAscending() ? 1 : -1;
+
+            return sign * currentComment.getId().compareTo(toCompareComment.getId());
+        };
     }
 
     @Override
     public Page<BaseCommentWithParentVO> pageWithParentVoBy(Integer postId, Pageable pageable) {
-        return null;
+        log.debug("Getting comment list view of post: [{}], page info: [{}]", postId, pageable);
+
+        Page<COMMENT> commentPage = baseCommentRepository.findAllByPostIdAndStatus(postId, CommentStatus.PUBLISHED, pageable);
+
+        List<COMMENT> comments = commentPage.getContent();
+
+        Set<Long> parentIds = ServiceUtils.fetchProperty(comments, COMMENT::getParentId);
+
+        List<COMMENT> parentComments = baseCommentRepository.findAllByIdIn(parentIds, pageable.getSort());
+
+        Map<Long, COMMENT> parentCommentMap = ServiceUtils.convertToMap(parentComments, COMMENT::getId);
+
+        Map<Long, BaseCommentWithParentVO> parentCommentVoMap = new HashMap<>(parentCommentMap.size());
+
+        return commentPage.map(comment -> {
+            BaseCommentWithParentVO commentWithParentVO = new BaseCommentWithParentVO().convertFrom(comment);
+
+            BaseCommentWithParentVO parentCommentVo = parentCommentVoMap.get(comment.getParentId());
+
+            if (parentCommentVo == null){
+                COMMENT parentComment = parentCommentMap.get(comment.getParentId());
+
+                if (parentComment != null){
+                    parentCommentVo = new BaseCommentWithParentVO().convertFrom(parentComment);
+                    parentCommentVoMap.put(parentComment.getId(), parentCommentVo);
+                }
+            }
+            commentWithParentVO.setParent(parentCommentVo == null ? null : parentCommentVo.clone());
+
+            return commentWithParentVO;
+        });
     }
 
     @Override
@@ -174,17 +252,44 @@ public abstract class BaseCommentServiceImpl<COMMENT extends BaseComment> extend
 
     @Override
     public COMMENT createBy(BaseCommentParam<COMMENT> commentParam) {
-        return null;
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication != null){
+            User user = authentication.getDetail().getUser();
+            commentParam.setAuthor(StringUtils.isBlank(user.getNickname()) ? user.getUsername() : user.getNickname());
+            commentParam.setEmail(user.getEmail());
+            commentParam.setAuthorUrl(optionService.getByPropertyOrDefault(BlogProperties.BLOG_URL, String.class, null));
+        }
+
+        ValidationUtils.validate(commentParam);
+
+        if (authentication == null){
+            if (userService.getByEmail(commentParam.getEmail()).isPresent()){
+                throw new BadRequestException("不能使用博主的邮箱，如果您是博主，请登录管理端进行回复。");
+            }
+        }
+
+        return create(commentParam.convertTo());
+
     }
 
     @Override
     public COMMENT updateStatus(Long commentId, CommentStatus status) {
-        return null;
+        COMMENT comment = getById(commentId);
+
+        comment.setStatus(status);
+
+        return update(comment);
     }
 
     @Override
     public List<COMMENT> updateStatusByIds(List<Long> ids, CommentStatus status) {
-        return null;
+        if (CollectionUtils.isEmpty(ids)){
+            return Collections.emptyList();
+        }
+        return ids.stream().map(id -> {
+            return updateStatus(id, status);
+        }).collect(Collectors.toList());
     }
 
     @Override
@@ -192,21 +297,42 @@ public abstract class BaseCommentServiceImpl<COMMENT extends BaseComment> extend
         return null;
     }
 
+    @Override
+    public COMMENT removeById(Long id) {
+        COMMENT comment = baseCommentRepository.findById(id).orElseThrow(() -> new NotFoundException("查询不到该评论的信息").setErrorData(id));
 
+        List<COMMENT> children = listChildrenBy(comment.getPostId(), id, Sort.by(Sort.Direction.DESC, "createTime"));
+
+        if (children.size() >0){
+            children.forEach(child -> {
+                super.removeById(child.getId());
+            });
+        }
+        return super.removeById(id);
+
+    }
 
     @Override
     public List<COMMENT> removeByIds(Collection<Long> ids) {
-        return null;
+        if (CollectionUtils.isEmpty(ids)){
+            return Collections.emptyList();
+        }
+        return ids.stream().map(this::removeById).collect(Collectors.toList());
     }
 
     @Override
     public BaseCommentDTO convertTo(COMMENT comment) {
-        return null;
+        return new BaseCommentDTO().convertFrom(comment);
     }
 
     @Override
     public List<BaseCommentDTO> convertTo(List<COMMENT> comments) {
-        return null;
+        if (CollectionUtils.isEmpty(comments)){
+            return Collections.emptyList();
+        }
+        return comments.stream()
+                .map(this::convertTo)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -236,7 +362,31 @@ public abstract class BaseCommentServiceImpl<COMMENT extends BaseComment> extend
 
     @Override
     public List<COMMENT> listChildrenBy(Integer targetId, Long commentParentId, Sort sort) {
-        return null;
+        List<COMMENT> directChildren = baseCommentRepository.findAllByPostIdAndParentId(targetId, commentParentId);
+
+        Set<COMMENT> children = new HashSet<>();
+
+        getChildrenRecursively(directChildren, children);
+
+        List<COMMENT> childrenList = new ArrayList<>(children);
+        childrenList.sort(Comparator.comparing(BaseComment::getId));
+
+        return childrenList;
+
+    }
+
+    private void getChildrenRecursively(@Nullable List<COMMENT> topComments, @NonNull Set<COMMENT> children){
+        if (CollectionUtils.isEmpty(topComments)){
+            return;
+        }
+
+        Set<Long> commentIds = ServiceUtils.fetchProperty(topComments, COMMENT::getId);
+
+        List<COMMENT> directChildren = baseCommentRepository.findAllByParentIdIn(commentIds);
+
+        getChildrenRecursively(directChildren, children);
+
+        children.addAll(topComments);
     }
 
     @Override

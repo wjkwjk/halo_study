@@ -4,6 +4,7 @@ import com.wjk.halo.event.logger.LogEvent;
 import com.wjk.halo.model.dto.IndependentSheetDTO;
 import com.wjk.halo.model.dto.post.BasePostMinimalDTO;
 import com.wjk.halo.model.entity.Sheet;
+import com.wjk.halo.model.entity.SheetComment;
 import com.wjk.halo.model.entity.SheetMeta;
 import com.wjk.halo.model.enums.LogType;
 import com.wjk.halo.model.vo.SheetDetailVO;
@@ -189,5 +190,23 @@ public class SheetServiceImpl extends BasePostServiceImpl<Sheet> implements Shee
     @Override
     public Page<Sheet> pageBy(Pageable pageable) {
         return listAll(pageable);
+    }
+
+    @Override
+    public Sheet removeById(Integer id) {
+        // Remove sheet metas
+        List<SheetMeta> metas = sheetMetaService.removeByPostId(id);
+        log.debug("Removed sheet metas: [{}]", metas);
+
+        // Remove sheet comments
+        List<SheetComment> sheetComments = sheetCommentService.removeByPostId(id);
+        log.debug("Removed sheet comments: [{}]", sheetComments);
+
+        Sheet sheet = super.removeById(id);
+
+        // Log it
+        eventPublisher.publishEvent(new LogEvent(this, id.toString(), LogType.SHEET_DELETED, sheet.getTitle()));
+
+        return sheet;
     }
 }

@@ -10,6 +10,8 @@ public enum LogType implements ValueEnum<Integer>{
 
     LOGIN_FAILED(35),
 
+    POST_DELETED(20),
+
     LOGIN_IN(25),
 
     PASSWORD_UPDATED(40),
@@ -21,6 +23,8 @@ public enum LogType implements ValueEnum<Integer>{
     SHEET_EDITED(55),
 
     LOGGED_OUT(30),
+
+    SHEET_DELETED(60),
 
     MFA_UPDATED(65)
     ;

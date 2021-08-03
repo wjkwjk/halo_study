@@ -44,4 +44,14 @@ public interface BaseCommentRepository<COMMENT extends BaseComment> extends Base
     List<CommentChildrenCountProjection> findDirectChildrenCount(@NonNull Collection<Long> commentIds);
 
 
+    @NonNull
+    @SensitiveConceal
+    Page<COMMENT> findAllByPostIdAndStatus(Integer postId, CommentStatus status, Pageable pageable);
+
+    @NonNull
+    @SensitiveConceal
+    List<COMMENT> findAllByPostIdAndParentId(@NonNull Integer postId, @NonNull Long parentId);
+
+    @SensitiveConceal
+    List<COMMENT> findAllByParentIdIn(@NonNull Collection<Long> parentIds);
 }

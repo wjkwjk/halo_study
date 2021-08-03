@@ -26,4 +26,10 @@ public interface BaseMetaService<META extends BaseMeta> extends CrudService<META
 
     @NonNull
     List<META> listBy(@NonNull Integer postId);
+
+    @NonNull
+    @Override
+    META create(@NonNull META meta);
+
+    void validateTarget(@NonNull Integer targetId);
 }

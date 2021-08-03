@@ -3,6 +3,7 @@ package com.wjk.halo.service.impl;
 import com.wjk.halo.model.dto.JournalDTO;
 import com.wjk.halo.model.dto.JournalWithCmtCountDTO;
 import com.wjk.halo.model.entity.Journal;
+import com.wjk.halo.model.entity.JournalComment;
 import com.wjk.halo.model.params.JournalParam;
 import com.wjk.halo.model.params.JournalQuery;
 import com.wjk.halo.repository.JournalRepository;
@@ -117,4 +118,12 @@ public class JournalServiceImpl extends AbstractCrudService<Journal, Integer> im
         };
     }
 
+    @Override
+    public Journal removeById(Integer id) {
+
+        List<JournalComment> journalComments = journalCommentService.removeByPostId(id);
+        log.debug("Removed journal comments: [{}]", journalComments);
+
+        return super.removeById(id);
+    }
 }

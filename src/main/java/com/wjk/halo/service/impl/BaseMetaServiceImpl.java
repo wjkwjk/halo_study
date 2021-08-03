@@ -94,4 +94,14 @@ public abstract class BaseMetaServiceImpl<META extends BaseMeta> extends Abstrac
     public List<META> listBy(Integer postId) {
         return baseMetaRepository.findAllByPostId(postId);
     }
+
+    @Override
+    public @NotNull META create(@NotNull META meta) {
+        if (!ServiceUtils.isEmptyId(meta.getPostId())) {
+            validateTarget(meta.getPostId());
+        }
+
+        // Create meta
+        return super.create(meta);
+    }
 }

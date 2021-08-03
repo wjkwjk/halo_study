@@ -321,6 +321,37 @@ public class PostServiceImpl extends BasePostServiceImpl<Post> implements PostSe
     }
 
     @Override
+    public Post removeById(Integer postId) {
+        log.debug("Removing post: [{}]", postId);
+
+        // Remove post tags
+        List<PostTag> postTags = postTagService.removeByPostId(postId);
+
+        log.debug("Removed post tags: [{}]", postTags);
+
+        // Remove post categories
+        List<PostCategory> postCategories = postCategoryService.removeByPostId(postId);
+
+        log.debug("Removed post categories: [{}]", postCategories);
+
+        // Remove metas
+        List<PostMeta> metas = postMetaService.removeByPostId(postId);
+        log.debug("Removed post metas: [{}]", metas);
+
+        // Remove post comments
+        List<PostComment> postComments = postCommentService.removeByPostId(postId);
+        log.debug("Removed post comments: [{}]", postComments);
+
+        Post deletedPost = super.removeById(postId);
+
+        // Log it
+        eventPublisher.publishEvent(new LogEvent(this, postId.toString(), LogType.POST_DELETED,
+                deletedPost.getTitle()));
+
+        return deletedPost;
+    }
+
+    @Override
     public List<Post> removeByIds(Collection<Integer> ids) {
         if (CollectionUtils.isEmpty(ids)){
             return Collections.emptyList();

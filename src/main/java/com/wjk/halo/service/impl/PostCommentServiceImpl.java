@@ -80,6 +80,16 @@ public class PostCommentServiceImpl extends BaseCommentServiceImpl<PostComment> 
 
     }
 
+    @Override
+    public PostCommentWithPostVO convertToWithPostVo(PostComment comment) {
+        PostCommentWithPostVO postCommentWithPostVO = new PostCommentWithPostVO().convertFrom(comment);
+
+        BasePostMinimalDTO basePostMinimalDTO = new BasePostMinimalDTO().convertFrom(postRepository.getOne(comment.getPostId()));
+
+        postCommentWithPostVO.setPost(buildPostFullPath(basePostMinimalDTO));
+        return postCommentWithPostVO;
+    }
+
     private BasePostMinimalDTO buildPostFullPath(BasePostMinimalDTO post){
         PostPermalinkType permalinkType = optionService.getPostPermalinkType();
 

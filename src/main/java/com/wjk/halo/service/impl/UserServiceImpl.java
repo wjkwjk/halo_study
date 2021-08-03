@@ -1,6 +1,8 @@
 package com.wjk.halo.service.impl;
 
 import cn.hutool.crypto.digest.BCrypt;
+import com.wjk.halo.cache.lock.CacheLock;
+import com.wjk.halo.event.user.UserUpdatedEvent;
 import com.wjk.halo.exception.BadRequestException;
 import com.wjk.halo.exception.ServiceException;
 import com.wjk.halo.event.logger.LogEvent;
@@ -144,5 +146,20 @@ public class UserServiceImpl extends AbstractCrudService<User, Integer> implemen
         eventPublisher.publishEvent(new LogEvent(this, user.getId().toString(), LogType.PROFILE_UPDATED, user.getUsername()));
         eventPublisher.publishEvent(new UserUpdateEvent(this, user.getId()));
         return updateUser;
+    }
+
+    @Override
+    @CacheLock
+    public User create(User user) {
+        // Check user
+        if (count() != 0) {
+            throw new BadRequestException("当前博客已有用户");
+        }
+
+        User createdUser = super.create(user);
+
+        eventPublisher.publishEvent(new UserUpdatedEvent(this, createdUser.getId()));
+
+        return createdUser;
     }
 }

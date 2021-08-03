@@ -1,5 +1,6 @@
 package com.wjk.halo.service.impl;
 
+import com.wjk.halo.exception.AlreadyExistsException;
 import com.wjk.halo.model.dto.TagDTO;
 import com.wjk.halo.model.entity.Tag;
 import com.wjk.halo.repository.TagRepository;
@@ -8,6 +9,7 @@ import com.wjk.halo.service.TagService;
 import com.wjk.halo.service.base.AbstractCrudService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.util.Collections;
@@ -56,5 +58,22 @@ public class TagServiceImpl extends AbstractCrudService<Tag, Integer> implements
         return tags.stream()
                 .map(this::convertTo)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public Tag create(Tag tag) {
+        // Check if the tag is exist
+        long count = tagRepository.countByNameOrSlug(tag.getName(), tag.getSlug());
+
+        log.debug("Tag count: [{}]", count);
+
+        if (count > 0) {
+            // If the tag has exist already
+            throw new AlreadyExistsException("该标签已存在").setErrorData(tag);
+        }
+
+        // Get tag name
+        return super.create(tag);
     }
 }

@@ -17,4 +17,7 @@ public interface PostCommentService extends BaseCommentService<PostComment> {
     @NonNull
     List<PostCommentWithPostVO> convertToWithPostVo(@Nullable List<PostComment> postComments);
 
+    @NonNull
+    PostCommentWithPostVO convertToWithPostVo(@NonNull PostComment comment);
+
 }

@@ -1,0 +1,3 @@
+完成PostCommentController；
+PostCommentController， StartisticController需要理解；
+暂时停止写新功能，需要停下来了解下整体的结构，项目中存在很多继承和实现上的问题
