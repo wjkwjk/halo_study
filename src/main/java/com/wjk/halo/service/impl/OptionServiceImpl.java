@@ -401,6 +401,16 @@ public class OptionServiceImpl extends AbstractCrudService<Option, Integer> impl
         return getByPropertyOrDefault(PermalinkProperties.JOURNALS_PREFIX, String.class, PermalinkProperties.JOURNALS_PREFIX.defaultValue());
     }
 
+    @Override
+    public int getCommentPageSize() {
+        try {
+            return getByPropertyOrDefault(CommentProperties.PAGE_SIZE, Integer.class, DEFAULT_COMMENT_PAGE_SIZE);
+        }catch (NumberFormatException e){
+            log.error(CommentProperties.PAGE_SIZE.getValue() + " option is not a number format", e);
+            return DEFAULT_COMMENT_PAGE_SIZE;
+        }
+    }
+
     @NonNull
     private Specification<Option> buildSpecByQuery(@NonNull OptionQuery optionQuery){
         return (Specification<Option>) (root, query, criteriaBuilder) ->{

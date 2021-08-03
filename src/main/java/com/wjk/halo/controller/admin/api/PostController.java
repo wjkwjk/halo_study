@@ -116,6 +116,7 @@ public class PostController {
         return postService.updateStatusByIds(ids, status);
     }
 
+    //更新草稿博客的内容
     @PutMapping("{postId:\\d+}/status/draft/content")
     public BasePostDetailDTO updateDraftBy(
             @PathVariable("postId") Integer postId,
@@ -134,6 +135,7 @@ public class PostController {
         return postService.removeByIds(ids);
     }
 
+    //获取文章预览链接
     @GetMapping(value = {"preview/{postId:\\d+}", "{postId:\\d+}/preview"})
     public String preview(@PathVariable("postId") Integer postId) throws UnsupportedEncodingException{
         Post post = postService.getById(postId);

@@ -95,6 +95,11 @@ public abstract class AbstractCrudService<DOMAIN, ID> implements CrudService<DOM
     }
 
     @Override
+    public void removeAll() {
+        repository.deleteAll();
+    }
+
+    @Override
     public boolean existById(ID id) {
         return repository.existsById(id);
     }

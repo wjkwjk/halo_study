@@ -21,6 +21,8 @@ import java.util.Optional;
 
 public interface OptionService extends CrudService<Option, Integer> {
 
+    int DEFAULT_COMMENT_PAGE_SIZE = 10;
+
     String OPTIONS_KEY = "options";
 
     /**
@@ -117,4 +119,6 @@ public interface OptionService extends CrudService<Option, Integer> {
     String getPhotosPrefix();
 
     String getJournalsPrefix();
+
+    int getCommentPageSize();
 }

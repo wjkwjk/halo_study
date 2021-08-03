@@ -1,8 +1,13 @@
 package com.wjk.halo.controller.admin.api;
 
+import cn.hutool.core.util.IdUtil;
 import com.wjk.halo.cache.AbstractStringCacheStore;
 import com.wjk.halo.model.dto.IndependentSheetDTO;
+import com.wjk.halo.model.dto.post.BasePostDetailDTO;
+import com.wjk.halo.model.dto.post.BasePostMinimalDTO;
 import com.wjk.halo.model.entity.Sheet;
+import com.wjk.halo.model.enums.PostStatus;
+import com.wjk.halo.model.params.PostContentParam;
 import com.wjk.halo.model.params.SheetParam;
 import com.wjk.halo.model.vo.SheetDetailVO;
 import com.wjk.halo.model.vo.SheetListVO;
@@ -15,7 +20,11 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("/api/admin/sheets")
@@ -71,5 +80,55 @@ public class SheetController {
 
         return sheetService.convertToDetailVo(sheet);
     }
+
+    @PutMapping("{sheetId:\\d+}/{status}")
+    public void updateStatusBy(@PathVariable("sheetId") Integer sheetId,
+                               @PathVariable("status")PostStatus status){
+        Sheet sheet = sheetService.getById(sheetId);
+
+        sheet.setStatus(status);
+
+        sheetService.update(sheet);
+    }
+
+    @PutMapping("{sheetId:\\d+}/status/draft/content")
+    public BasePostDetailDTO updateDraftBy(@PathVariable("sheetId") Integer sheetId,
+                                           @RequestBody PostContentParam contentParam){
+        Sheet sheet = sheetService.updateDraftContent(contentParam.getContent(), sheetId);
+
+        return new BasePostDetailDTO().convertFrom(sheet);
+    }
+
+    @DeleteMapping("{sheetId:\\d+}")
+    public SheetDetailVO deleteBy(@PathVariable("sheetId") Integer sheetId){
+        Sheet sheet = sheetService.removeById(sheetId);
+        return sheetService.convertToDetailVo(sheet);
+    }
+
+    public String preview(@PathVariable("sheetId") Integer sheetId) throws UnsupportedEncodingException{
+        Sheet sheet = sheetService.getById(sheetId);
+
+        sheet.setSlug(URLEncoder.encode(sheet.getSlug(), StandardCharsets.UTF_8.name()));
+
+        BasePostMinimalDTO sheetMinimalDTO = sheetService.convertToMinimal(sheet);
+
+        String token = IdUtil.simpleUUID();
+
+        cacheStore.putAny(token, token, 10, TimeUnit.MINUTES);
+
+        StringBuilder previewUrl = new StringBuilder();
+
+        if (!optionService.isEnabledAbsolutePath()){
+            previewUrl.append(optionService.getBlogBaseUrl());
+        }
+
+        previewUrl.append(sheetMinimalDTO.getFullPath())
+                .append("?token=")
+                .append(token);
+
+        return previewUrl.toString();
+
+    }
+
 }
 
