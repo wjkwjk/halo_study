@@ -1,3 +1,3 @@
-完成SheetCommentController；
-PostCommentController, SheetCommentController需要理解
+完成JournalCommentController；
+PostCommentController, SheetCommentController, JournalCommentController需要理解
 理解项目的整体架构
