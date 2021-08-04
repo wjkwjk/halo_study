@@ -63,7 +63,7 @@ public interface PropertyEnum extends ValueEnum<String> {
      */
 
     /**
-     *
+     *目的是为了String类型的value值转变为指定的枚举值
      * @param value 数据库全部查询结果中，每一行中列名为value的值
      * @param propertyEnum  需要查找的枚举类型
      * @return
@@ -92,7 +92,7 @@ public interface PropertyEnum extends ValueEnum<String> {
      * @param <T>
      * @return
      */
-    //返回美剧类型type
+    //返回枚举类型type
     @Nullable
     static <T extends Enum<T>> T convertToEnum(@NonNull String value, @NonNull Class<T> type){
         try {

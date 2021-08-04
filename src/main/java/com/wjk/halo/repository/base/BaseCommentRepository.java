@@ -54,4 +54,6 @@ public interface BaseCommentRepository<COMMENT extends BaseComment> extends Base
 
     @SensitiveConceal
     List<COMMENT> findAllByParentIdIn(@NonNull Collection<Long> parentIds);
+
+    long countByStatus(@NonNull CommentStatus status);
 }

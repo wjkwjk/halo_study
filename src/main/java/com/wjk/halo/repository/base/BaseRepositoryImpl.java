@@ -1,12 +1,20 @@
 package com.wjk.halo.repository.base;
 
+import com.wjk.halo.annotation.SensitiveConceal;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.support.JpaEntityInformation;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
+import org.springframework.lang.Nullable;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.*;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 @Slf4j
@@ -38,4 +46,46 @@ public class BaseRepositoryImpl<DOMAIN, ID> extends SimpleJpaRepository<DOMAIN, 
 
         return domains.size();
     }
+
+
+    @Override
+    @SensitiveConceal
+    public List<DOMAIN> findAllByIdIn(Collection<ID> ids, Sort sort) {
+        log.debug("Customized findAllById method was invoked");
+
+        if (!ids.iterator().hasNext()){
+            return Collections.emptyList();
+        }
+
+        if (entityInformation.hasCompositeId()){
+            List<DOMAIN> results = new ArrayList<>();
+            ids.forEach(id -> super.findById(id).ifPresent(results::add));
+            return results;
+        }
+
+        ByIdsSpecification<DOMAIN> specification = new ByIdsSpecification<>(entityInformation);
+        TypedQuery<DOMAIN> query = super.getQuery(specification, sort);
+
+        return query.setParameter(specification.parameter, ids).getResultList();
+    }
+
+    private static final class ByIdsSpecification<T> implements Specification<T>{
+        private static final long serialVersionUID = 1L;
+        private final JpaEntityInformation<T, ?> entityInformation;
+
+        @Nullable
+        ParameterExpression<Collection> parameter;
+
+        ByIdsSpecification(JpaEntityInformation<T, ?> entityInformation){
+            this.entityInformation = entityInformation;
+        }
+
+        @Override
+        public Predicate toPredicate(Root<T> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+            Path<?> path = root.get(this.entityInformation.getIdAttribute());
+            this.parameter = cb.parameter(Collection.class);
+            return path.in(this.parameter);
+        }
+    }
+
 }

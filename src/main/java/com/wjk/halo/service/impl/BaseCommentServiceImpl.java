@@ -199,7 +199,7 @@ public abstract class BaseCommentServiceImpl<COMMENT extends BaseComment> extend
 
     @Override
     public long countByStatus(CommentStatus status) {
-        return 0;
+        return baseCommentRepository.countByStatus(status);
     }
 
     @Override
@@ -409,22 +409,23 @@ public abstract class BaseCommentServiceImpl<COMMENT extends BaseComment> extend
         return null;
     }
 
+    //建立多表查询
     @NonNull
     protected Specification<COMMENT> buildSpecByQuery(@NonNull CommentQuery commentQuery){
         return (Specification<COMMENT>) (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new LinkedList<>();
-
+            //匹配status
             if (commentQuery.getStatus() != null){
                 predicates.add(criteriaBuilder.equal(root.get("status"), commentQuery.getStatus()));
             }
-
+            //匹配关键字
             if (commentQuery.getKeyword() != null){
                 String likeCondition = String.format("%%%s%%", StringUtils.strip(commentQuery.getKeyword()));
 
                 Predicate authorLike = criteriaBuilder.like(root.get("author"), likeCondition);
                 Predicate contentLike = criteriaBuilder.like(root.get("content"), likeCondition);
                 Predicate emailLike = criteriaBuilder.like(root.get("email"), likeCondition);
-
+                //关键字存在author，content，或者email中皆可
                 predicates.add(criteriaBuilder.or(authorLike, contentLike, emailLike));
             }
             return query.where(predicates.toArray(new Predicate[0])).getRestriction();

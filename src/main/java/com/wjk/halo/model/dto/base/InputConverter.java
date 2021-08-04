@@ -10,7 +10,7 @@ import java.util.Objects;
 
 public interface InputConverter <DOMAIN>{
 
-    //转换到domain
+    //将调用该函数的类型转换到DOMAIN类型
     default DOMAIN convertTo(){
         //获得参数类型
         ParameterizedType currentType = parameterizedType();

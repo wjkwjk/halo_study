@@ -71,6 +71,11 @@ public class MenuServiceImpl extends AbstractCrudService<Menu, Integer> implemen
     }
 
     @Override
+    public @NotNull Menu update(@NotNull Menu menu) {
+        return super.update(menu);
+    }
+
+    @Override
     public Menu createBy(MenuParam menuParam) {
         return create(menuParam.convertTo());
     }
