@@ -6,6 +6,8 @@ import org.springframework.lang.NonNull;
 
 import java.util.UUID;
 
+import static com.wjk.halo.model.support.HaloConst.FILE_SEPARATOR;
+
 @Slf4j
 public class HaloUtils {
 
@@ -102,6 +104,10 @@ public class HaloUtils {
         String left = StringUtils.left(plainText, leftSize);
         String right = StringUtils.right(plainText, rightSize);
         return StringUtils.rightPad(left, remainSize + leftSize, '*') + right;
+    }
+
+    public static String changeFileSeparatorToUrlSeparator(@NonNull String pathname){
+        return pathname.replace(FILE_SEPARATOR, "/");
     }
 
 }

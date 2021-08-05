@@ -16,6 +16,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
@@ -121,4 +122,7 @@ public interface OptionService extends CrudService<Option, Integer> {
     String getJournalsPrefix();
 
     int getCommentPageSize();
+
+    @NonNull
+    Locale getLocale();
 }

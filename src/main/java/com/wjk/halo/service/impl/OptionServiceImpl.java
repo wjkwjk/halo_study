@@ -411,6 +411,17 @@ public class OptionServiceImpl extends AbstractCrudService<Option, Integer> impl
         }
     }
 
+    @Override
+    public Locale getLocale() {
+        return getByProperty(BlogProperties.BLOG_LOCATE).map(localeStr -> {
+            try {
+                return Locale.forLanguageTag(localeStr.toString());
+            }catch (Exception e){
+                return Locale.getDefault();
+            }
+        }).orElseGet(Locale::getDefault);
+    }
+
     @NonNull
     private Specification<Option> buildSpecByQuery(@NonNull OptionQuery optionQuery){
         return (Specification<Option>) (root, query, criteriaBuilder) ->{

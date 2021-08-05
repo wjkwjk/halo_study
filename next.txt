@@ -1,4 +1,4 @@
-PostCommentController, SheetCommentController, JournalCommentController基本理解；
 需要理解PhotoController，MenuController;
-接下来写AttachmentController
+AttachmentController已经完成，其中设计文件的操作，完成了FileHanler，LocalFileHandler
+接下来开始理解，重点理解AttachmentControlle，以包含的文件操作
 理解项目的整体架构

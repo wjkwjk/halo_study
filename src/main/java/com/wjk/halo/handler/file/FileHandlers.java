@@ -1,14 +1,17 @@
 package com.wjk.halo.handler.file;
 
+import com.wjk.halo.exception.FileOperationException;
 import com.wjk.halo.exception.RepeatTypeException;
 import com.wjk.halo.model.entity.Attachment;
 import com.wjk.halo.model.enums.AttachmentType;
+import com.wjk.halo.model.support.UploadResult;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationContext;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
@@ -36,4 +39,23 @@ public class FileHandlers {
         }
         return this;
     }
+
+    public void delete(@NonNull Attachment attachment){
+        getSupportedType(attachment.getType())
+                .delete(attachment.getFileKey());
+    }
+
+    private FileHandler getSupportedType(AttachmentType type){
+        FileHandler handler = fileHandlers.getOrDefault(type, fileHandlers.get(AttachmentType.LOCAL));
+        if (handler == null){
+            throw new FileOperationException("No available file handlers to operate the file").setErrorData(type);
+        }
+        return handler;
+    }
+
+    @NonNull
+    public UploadResult upload(@NonNull MultipartFile file, @NonNull AttachmentType attachmentType){
+        return getSupportedType(attachmentType).upload(file);
+    }
+
 }
