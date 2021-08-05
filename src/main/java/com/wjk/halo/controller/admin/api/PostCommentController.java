@@ -51,6 +51,7 @@ public class PostCommentController {
         return postCommentService.convertToWithPostVo(content);
     }
 
+    //以树的形式返回某个post的所有评论，即每个评论中存在children属性，用来记录它的子评论
     @GetMapping("{postId:\\d+}/tree_view")
     public Page<BaseCommentVO> listCommentTree(@PathVariable("postId") Integer postId,
                                                @RequestParam(name = "page", required = false, defaultValue = "0") int page,
@@ -58,6 +59,7 @@ public class PostCommentController {
         return postCommentService.pageVosAllBy(postId, PageRequest.of(page, optionService.getCommentPageSize(), sort));
     }
 
+    //每个评论中存在parent属性，用来记录它的父评论
     @GetMapping("{postId:\\d+}/list_view")
     public Page<BaseCommentWithParentVO> listComments(@PathVariable("postId") Integer postId,
                                                       @RequestParam(name = "page", required = false, defaultValue = "0") int page,
@@ -85,6 +87,7 @@ public class PostCommentController {
         return postCommentService.convertTo(comments);
     }
 
+    //删除评论，需要删除当前评论以及当前评论的子评论
     @DeleteMapping("{commentId:\\d+}")
     public BaseCommentDTO deletePermanently(@PathVariable("commentId") Long commentId){
         PostComment deletedPostComment = postCommentService.removeById(commentId);

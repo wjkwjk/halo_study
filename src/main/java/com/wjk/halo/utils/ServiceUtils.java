@@ -1,9 +1,7 @@
 package com.wjk.halo.utils;
 
 import cn.hutool.extra.servlet.ServletUtil;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.util.CollectionUtils;
@@ -97,5 +95,9 @@ public class ServiceUtils {
         return PageRequest.of(0, top, Sort.by(Sort.Direction.DESC, sortProperty));
     }
 
+    @NonNull
+    public static <T, S> Page<T> buildEmptyPageImpl(@NonNull Page<S> page){
+        return new PageImpl<>(Collections.emptyList(), page.getPageable(), page.getTotalElements());
+    }
 
 }

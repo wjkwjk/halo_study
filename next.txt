@@ -1,3 +1,4 @@
-完成JournalCommentController；
-PostCommentController, SheetCommentController, JournalCommentController需要理解
+PostCommentController, SheetCommentController, JournalCommentController基本理解；
+需要理解PhotoController，MenuController;
+接下来写AttachmentController
 理解项目的整体架构

@@ -13,6 +13,7 @@ import com.wjk.halo.model.entity.User;
 import com.wjk.halo.model.enums.CommentStatus;
 import com.wjk.halo.model.params.BaseCommentParam;
 import com.wjk.halo.model.params.CommentQuery;
+import com.wjk.halo.model.projection.CommentChildrenCountProjection;
 import com.wjk.halo.model.projection.CommentCountProjection;
 import com.wjk.halo.model.properties.BlogProperties;
 import com.wjk.halo.model.properties.CommentProperties;
@@ -106,13 +107,16 @@ public abstract class BaseCommentServiceImpl<COMMENT extends BaseComment> extend
 
     @Override
     public Page<BaseCommentVO> pageVosBy(Integer postId, Pageable pageable) {
-        return null;
+        log.debug("Getting comment tree view of post: [{}], page info: [{}]", postId, pageable);
+        List<COMMENT> comments = baseCommentRepository.findAllByPostId(postId);
+        return pageVosBy(comments, pageable);
     }
 
     @Override
     public Page<BaseCommentVO> pageVosBy(List<COMMENT> comments, Pageable pageable) {
+        //如何对评论进行排序的比较器
         Comparator<BaseCommentVO> commentComparator = buildCommentComparator(pageable.getSortOr(Sort.by(Sort.Direction.DESC, "createTime")));
-
+        //建立评论树，返回根评论
         List<BaseCommentVO> topComments = convertToVo(comments, commentComparator);
 
         List<BaseCommentVO> pageContent;
@@ -160,6 +164,7 @@ public abstract class BaseCommentServiceImpl<COMMENT extends BaseComment> extend
 
         List<COMMENT> comments = commentPage.getContent();
 
+        //获得全部评论的全部的父评论集合
         Set<Long> parentIds = ServiceUtils.fetchProperty(comments, COMMENT::getParentId);
 
         List<COMMENT> parentComments = baseCommentRepository.findAllByIdIn(parentIds, pageable.getSort());
@@ -204,10 +209,12 @@ public abstract class BaseCommentServiceImpl<COMMENT extends BaseComment> extend
 
     @Override
     public COMMENT create(COMMENT comment) {
+        //判断post是否存在或者post是否允许评论
         if (!ServiceUtils.isEmptyId(comment.getPostId())){
             validateTarget(comment.getPostId());
         }
 
+        //必须存在父评论
         if (!ServiceUtils.isEmptyId(comment.getParentId())){
             mustExistById(comment.getParentId());
         }
@@ -294,20 +301,23 @@ public abstract class BaseCommentServiceImpl<COMMENT extends BaseComment> extend
 
     @Override
     public List<COMMENT> removeByPostId(Integer postId) {
-        return null;
+        return baseCommentRepository.deleteByPostId(postId);
     }
 
     @Override
     public COMMENT removeById(Long id) {
         COMMENT comment = baseCommentRepository.findById(id).orElseThrow(() -> new NotFoundException("查询不到该评论的信息").setErrorData(id));
 
+        //找到指定post以及指定父评论节点的全部子评论
         List<COMMENT> children = listChildrenBy(comment.getPostId(), id, Sort.by(Sort.Direction.DESC, "createTime"));
 
+        //删除子评论
         if (children.size() >0){
             children.forEach(child -> {
                 super.removeById(child.getId());
             });
         }
+        //删除当前评论
         return super.removeById(id);
 
     }
@@ -336,36 +346,102 @@ public abstract class BaseCommentServiceImpl<COMMENT extends BaseComment> extend
     }
 
     @Override
-    public Page<BaseCommentDTO> convertTo(Page<COMMENT> comments) {
-        return null;
+    public Page<BaseCommentDTO> convertTo(Page<COMMENT> commentPage) {
+        return commentPage.map(this::convertTo);
     }
 
+    @NonNull
     @Override
-    public List<BaseCommentVO> convertToVo(List<COMMENT> comments, Comparator<BaseCommentVO> comparator) {
-        return null;
+    public List<BaseCommentVO> convertToVo(@Nullable List<COMMENT> comments, @Nullable Comparator<BaseCommentVO> comparator) {
+        if (CollectionUtils.isEmpty(comments)){
+            return Collections.emptyList();
+        }
+        //建立根节点，即虚拟一个根评论
+        BaseCommentVO topVirtualComment = new BaseCommentVO();
+        topVirtualComment.setId(0L);
+        topVirtualComment.setChildren(new LinkedList<>());
+        //对所有节点建立树关系
+        concreteTree(topVirtualComment, new LinkedList<>(comments), comparator);
+
+        return topVirtualComment.getChildren();
+
+    }
+
+    protected void concreteTree(@NonNull BaseCommentVO parentComment,
+                                @Nullable Collection<COMMENT> comments,
+                                @Nullable Comparator<BaseCommentVO> commentComparator){
+        if (CollectionUtils.isEmpty(comments)){
+            return;
+        }
+        //找出当前评论的子评论
+        List<COMMENT> children = comments.stream()
+                .filter(comment -> Objects.equals(parentComment.getId(), comment.getParentId()))
+                .collect(Collectors.toList());
+        //将子评论放到当前评论的子评论链表中
+        children.forEach(comment -> {
+            BaseCommentVO commentVO = new BaseCommentVO().convertFrom(comment);
+            if (parentComment.getChildren() == null){
+                parentComment.setChildren(new LinkedList<>());
+            }
+            parentComment.getChildren().add(commentVO);
+        });
+        //删除已经入树的评论
+        comments.removeAll(children);
+        //递归，给每一个评论建立子树
+        if (!CollectionUtils.isEmpty(parentComment.getChildren())){
+            parentComment.getChildren().forEach(childComment -> concreteTree(childComment, comments, commentComparator));
+            //将每个节点的子评论排序
+            if (commentComparator != null){
+                parentComment.getChildren().sort(commentComparator);
+            }
+        }
+
     }
 
     @Override
     public Page<CommentWithHasChildrenVO> pageTopCommentsBy(Integer targetId, CommentStatus status, Pageable pageable) {
-        return null;
+        Page<COMMENT> topCommentPage = baseCommentRepository.findAllByPostIdAndStatusAndParentId(targetId, status, 0L, pageable);
+        if (topCommentPage.isEmpty()){
+            return ServiceUtils.buildEmptyPageImpl(topCommentPage);
+        }
+
+        Set<Long> topCommentIds = ServiceUtils.fetchProperty(topCommentPage.getContent(), BaseComment::getId);
+
+        List<CommentChildrenCountProjection> directChildrenCount = baseCommentRepository.findDirectChildrenCount(topCommentIds);
+
+        Map<Long, Long> commentChildrenCountMap = ServiceUtils.convertToMap(directChildrenCount, CommentChildrenCountProjection::getCommentId, CommentChildrenCountProjection::getDirectChildrenCount);
+
+        return topCommentPage.map(topComment -> {
+            CommentWithHasChildrenVO comment = new CommentWithHasChildrenVO().convertFrom(topComment);
+            comment.setHasChildren(commentChildrenCountMap.getOrDefault(topComment.getId(), 0L) > 0);
+            return comment;
+        });
     }
 
-    @Override
-    public void validateTarget(Integer targetId) {
-
-    }
 
     @Override
     public List<COMMENT> listChildrenBy(Integer targetId, Long commentParentId, CommentStatus status, Sort sort) {
-        return null;
+
+        List<COMMENT> directChildren = baseCommentRepository.findAllByPostIdAndStatusAndParentId(targetId, status, commentParentId);
+
+        Set<COMMENT> children = new HashSet<>();
+
+        getChildrenRecursively(directChildren, status, children);
+
+        List<COMMENT> childrenList = new ArrayList<>(children);
+        childrenList.sort(Comparator.comparing(BaseComment::getId));
+
+        return childrenList;
+
     }
 
     @Override
     public List<COMMENT> listChildrenBy(Integer targetId, Long commentParentId, Sort sort) {
+        //找到指定post以及指定父评论的所有直接子评论
         List<COMMENT> directChildren = baseCommentRepository.findAllByPostIdAndParentId(targetId, commentParentId);
 
         Set<COMMENT> children = new HashSet<>();
-
+        //递归找到所有的子评论
         getChildrenRecursively(directChildren, children);
 
         List<COMMENT> childrenList = new ArrayList<>(children);
@@ -373,6 +449,20 @@ public abstract class BaseCommentServiceImpl<COMMENT extends BaseComment> extend
 
         return childrenList;
 
+    }
+
+    private void getChildrenRecursively(@Nullable List<COMMENT> topComments, @org.springframework.lang.NonNull CommentStatus status, @org.springframework.lang.NonNull Set<COMMENT> children){
+        if (CollectionUtils.isEmpty(topComments)){
+            return;
+        }
+
+        Set<Long> commentIds = ServiceUtils.fetchProperty(topComments, COMMENT::getId);
+
+        List<COMMENT> directChildren = baseCommentRepository.findAllByStatusAndParentIdIn(status, commentIds);
+
+        getChildrenRecursively(directChildren, status, children);
+
+        children.addAll(topComments);
     }
 
     private void getChildrenRecursively(@Nullable List<COMMENT> topComments, @NonNull Set<COMMENT> children){
@@ -409,10 +499,16 @@ public abstract class BaseCommentServiceImpl<COMMENT extends BaseComment> extend
         return null;
     }
 
-    //建立多表查询
+    //建立复杂查询，包含了多条件查询和模糊查询
     @NonNull
     protected Specification<COMMENT> buildSpecByQuery(@NonNull CommentQuery commentQuery){
+        //return的部分实现了Specification中的toPredicate接口
+        //root：从实体类中获取相应的字段
+        //query：该接口定义了顶级查询功能，它包含着查询到各个部分，如：select、from、where、group by、order by 等
+        //CriteriaBuilder：它是 CriteriaQuery 的工厂类，用于构建 JPA 安全查询。
+        //在下面，首先使用CriteriaBuilder创建where条件，然后调用query.where生成where语句
         return (Specification<COMMENT>) (root, query, criteriaBuilder) -> {
+            //Predicate: 过滤条件,相当于构造 where 中的条件
             List<Predicate> predicates = new LinkedList<>();
             //匹配status
             if (commentQuery.getStatus() != null){

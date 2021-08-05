@@ -1,6 +1,8 @@
 package com.wjk.halo.service.impl;
 
 import cn.hutool.core.date.DateUtil;
+import com.wjk.halo.exception.BadRequestException;
+import com.wjk.halo.exception.NotFoundException;
 import com.wjk.halo.model.dto.post.BasePostMinimalDTO;
 import com.wjk.halo.model.entity.Option;
 import com.wjk.halo.model.entity.Post;
@@ -60,24 +62,24 @@ public class PostCommentServiceImpl extends BaseCommentServiceImpl<PostComment> 
         if (CollectionUtils.isEmpty(postComments)){
             return Collections.emptyList();
         }
-
+        //从评论中获取post的id
         Set<Integer> postIds = ServiceUtils.fetchProperty(postComments, PostComment::getPostId);
-
+        //根据获取的postId获取整个post，并以postId为键建立Map
         Map<Integer, Post> postMap = ServiceUtils.convertToMap(postRepository.findAllById(postIds), Post::getId);
 
         return postComments.stream()
-                .filter(comment -> postMap.containsKey(comment.getPostId()))
+                .filter(comment -> postMap.containsKey(comment.getPostId()))    //判断是否存在对应的post
                 .map(comment -> {
+                    //将comment的内容复制到postCommentWithPostVO中
                     PostCommentWithPostVO postCommentWithPostVO = new PostCommentWithPostVO().convertFrom(comment);
-
+                    //将post的内容复制到basePostMinimalDTO
                     BasePostMinimalDTO basePostMinimalDTO = new BasePostMinimalDTO().convertFrom(postMap.get(comment.getPostId()));
-
+                    //设置postCommentWithPostVO中的post属性
                     postCommentWithPostVO.setPost(buildPostFullPath(basePostMinimalDTO));
 
                     return postCommentWithPostVO;
 
                 }).collect(Collectors.toList());
-
     }
 
     @Override
@@ -149,4 +151,13 @@ public class PostCommentServiceImpl extends BaseCommentServiceImpl<PostComment> 
 
     }
 
+    @Override
+    public void validateTarget(Integer postId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new NotFoundException("查询不到该文章的信息").setErrorData(postId));
+
+        if (post.getDisallowComment()){
+            throw new BadRequestException("该文章已经被禁止评论").setErrorData(postId);
+        }
+    }
 }

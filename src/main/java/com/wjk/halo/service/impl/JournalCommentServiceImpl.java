@@ -1,6 +1,7 @@
 package com.wjk.halo.service.impl;
 
 import cn.hutool.core.collection.CollectionUtil;
+import com.wjk.halo.exception.NotFoundException;
 import com.wjk.halo.model.dto.JournalDTO;
 import com.wjk.halo.model.entity.Journal;
 import com.wjk.halo.model.entity.JournalComment;
@@ -65,5 +66,12 @@ public class JournalCommentServiceImpl extends BaseCommentServiceImpl<JournalCom
     public Page<JournalCommentWithJournalVO> convertToWithJournalVo(Page<JournalComment> journalCommentPage) {
         List<JournalCommentWithJournalVO> journalCommentWithJournalVOS = convertToWithJournalVo(journalCommentPage.getContent());
         return new PageImpl<>(journalCommentWithJournalVOS, journalCommentPage.getPageable(), journalCommentPage.getTotalElements());
+    }
+
+    @Override
+    public void validateTarget(Integer journalId) {
+        if (!journalRepository.existsById(journalId)) {
+            throw new NotFoundException("查询不到该日志信息").setErrorData(journalId);
+        }
     }
 }

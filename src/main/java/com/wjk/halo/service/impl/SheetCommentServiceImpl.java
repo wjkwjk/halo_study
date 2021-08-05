@@ -1,5 +1,7 @@
 package com.wjk.halo.service.impl;
 
+import com.wjk.halo.exception.BadRequestException;
+import com.wjk.halo.exception.NotFoundException;
 import com.wjk.halo.model.dto.post.BasePostMinimalDTO;
 import com.wjk.halo.model.entity.Sheet;
 import com.wjk.halo.model.entity.SheetComment;
@@ -92,4 +94,13 @@ public class SheetCommentServiceImpl extends BaseCommentServiceImpl<SheetComment
         return basePostMinimalDTO;
     }
 
+    @Override
+    public void validateTarget(Integer sheetId) {
+        Sheet sheet = sheetRepository.findById(sheetId)
+                .orElseThrow(() -> new NotFoundException("查询不到该页面的信息").setErrorData(sheetId));
+
+        if (sheet.getDisallowComment()) {
+            throw new BadRequestException("该页面已被禁止评论").setErrorData(sheetId);
+        }
+    }
 }

@@ -56,4 +56,20 @@ public interface BaseCommentRepository<COMMENT extends BaseComment> extends Base
     List<COMMENT> findAllByParentIdIn(@NonNull Collection<Long> parentIds);
 
     long countByStatus(@NonNull CommentStatus status);
+
+    @NonNull
+    @SensitiveConceal
+    Page<COMMENT> findAllByPostIdAndStatusAndParentId(Integer postId, CommentStatus status, Long parentId, Pageable pageable);
+
+    @NonNull
+    @SensitiveConceal
+    List<COMMENT> findAllByPostIdAndStatusAndParentId(@NonNull Integer postId, @NonNull CommentStatus status, @NonNull Long parentId);
+
+    @NonNull
+    @SensitiveConceal
+    List<COMMENT> findAllByStatusAndParentIdIn(@NonNull CommentStatus status, @NonNull Collection<Long> parentIds);
+
+
+    @NonNull
+    List<COMMENT> deleteByPostId(@NonNull Integer postId);
 }
