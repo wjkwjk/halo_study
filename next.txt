@@ -1,4 +1,8 @@
-需要理解PhotoController，MenuController理解完成
-AttachmentController理解完成
-正在写ThemeController
-springboot版本修改为2.3.4.RELEASE
+写完ThemeController，但是不用回着急理解，涉及的内容太多；
+接下来写一些过滤器，通知；
+理解事件发布；
+先写管理员端，不用着急用户端，管理员端完成后，在看前端，实现管理员端的前后台交互
+
+更新：
+添加ThemeController
+pom新增远程仓库地址

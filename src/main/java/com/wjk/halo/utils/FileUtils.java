@@ -162,4 +162,26 @@ public class FileUtils {
         log.info("Rename [{}] successfully", pathToRename);
     }
 
+    public static void closeQuietly(@Nullable ZipInputStream zipInputStream) {
+        try {
+            if (zipInputStream != null) {
+                zipInputStream.closeEntry();
+                zipInputStream.close();
+            }
+        } catch (IOException e) {
+            // Ignore this exception
+            log.warn("Failed to close zip input stream", e);
+        }
+    }
+
+    public static void deleteFolderQuietly(@Nullable Path deletingPath) {
+        try {
+            if (deletingPath != null) {
+                FileUtils.deleteFolder(deletingPath);
+            }
+        } catch (IOException e) {
+            log.warn("Failed to delete " + deletingPath);
+        }
+    }
+
 }
