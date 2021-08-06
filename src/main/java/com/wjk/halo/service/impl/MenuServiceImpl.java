@@ -48,7 +48,7 @@ public class MenuServiceImpl extends AbstractCrudService<Menu, Integer> implemen
         }
 
         MenuVO topLevelMenu = createTopLevelMenu();
-
+        //递归生成menu树，与生成postComment树一样
         concreteTree(topLevelMenu, menus);
 
         return topLevelMenu.getChildren();

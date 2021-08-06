@@ -117,25 +117,25 @@ public class LocalFileHandler implements FileHandler{
     @Override
     public UploadResult upload(MultipartFile file) {
         Calendar current = Calendar.getInstance(optionService.getLocale());
-
+        //获得上传日期
         int year = current.get(Calendar.YEAR);
         int month = current.get(Calendar.MONTH) + 1;
 
         String monthString = month < 10 ? "0" + month : String.valueOf(month);
-
+        //新建目录
         // Build directory
         String subDir = UPLOAD_SUB_DIR + year + FILE_SEPARATOR + monthString + FILE_SEPARATOR;
-
+        //获取文件名（不包括文件后缀名）
         String originalBasename = FilenameUtils.getBasename(Objects.requireNonNull(file.getOriginalFilename()));
-
+        //文件名加一个随机字符串，用于防止上传的多个相同名字的文件冲突
         String basename = originalBasename + "-" + HaloUtils.randomUUIDWithoutDash();
-
+        //获取文件后缀名
         String extension = FilenameUtils.getExtension(file.getOriginalFilename());
 
         log.debug("Base name: [{}], extension: [{}] of original filename: [{}]", basename, extension, file.getOriginalFilename());
-
+        //在生成的目录下保存当前文件，并且重新生成文件名
         String subFilePath = subDir + basename + '.' + extension;
-
+        //生成绝对路径
         Path uploadPath = Paths.get(workDir, subFilePath);
 
         log.info("Uploading file: [{}]to directory: [{}]", file.getOriginalFilename(), uploadPath.toString());
@@ -160,7 +160,7 @@ public class LocalFileHandler implements FileHandler{
 
             // TODO refactor this: if image is svg ext. extension
             boolean isSvg = "svg".equals(extension);
-
+            //判断是否是图片，用来设置缩略图地址，如果不是图片，在缩略图与文件地址相同
             if (FileHandler.isImageType(uploadResult.getMediaType()) && !isSvg){
                 lock.lock();
                 try (InputStream uploadFileInputStream = new FileInputStream(uploadPath.toFile())){

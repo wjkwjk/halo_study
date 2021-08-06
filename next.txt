@@ -1,4 +1,4 @@
-需要理解PhotoController，MenuController;
-AttachmentController已经完成，其中设计文件的操作，完成了FileHanler，LocalFileHandler
-接下来开始理解，重点理解AttachmentControlle，以包含的文件操作
-理解项目的整体架构
+需要理解PhotoController，MenuController理解完成
+AttachmentController理解完成
+正在写ThemeController
+springboot版本修改为2.3.4.RELEASE

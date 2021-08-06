@@ -109,10 +109,10 @@ public class AttachmentServiceImpl extends AbstractCrudService<Attachment, Integ
     @Override
     public Attachment upload(MultipartFile file) {
         AttachmentType attachmentType = getAttachmentType();
-
+        //先获取附件的上传地址类型（本地或者是其他云服务器）
         log.debug("Starting uploading... type: [{}], file: [{}]", attachmentType, file.getOriginalFilename());
 
-        // Upload file
+        // 上传文件
         UploadResult uploadResult = fileHandlers.upload(file, attachmentType);
 
         log.debug("Attachment type: [{}]", attachmentType);
@@ -160,7 +160,7 @@ public class AttachmentServiceImpl extends AbstractCrudService<Attachment, Integ
             }
 
             if (attachmentQuery.getKeyword() != null) {
-
+                //建立模糊查询字符串
                 String likeCondition = String.format("%%%s%%", StringUtils.strip(attachmentQuery.getKeyword()));
 
                 Predicate nameLike = criteriaBuilder.like(root.get("name"), likeCondition);

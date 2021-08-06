@@ -153,4 +153,13 @@ public class FileUtils {
         return Optional.empty();
     }
 
+    public static void rename(@NonNull Path pathToRename, @NonNull String newName) throws IOException{
+        Path newPath = pathToRename.resolveSibling(newName);
+        log.info("Rename [{}] to [{}]", pathToRename, newPath);
+
+        Files.move(pathToRename, newPath);
+
+        log.info("Rename [{}] successfully", pathToRename);
+    }
+
 }

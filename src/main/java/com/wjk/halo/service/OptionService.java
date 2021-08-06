@@ -125,4 +125,8 @@ public interface OptionService extends CrudService<Option, Integer> {
 
     @NonNull
     Locale getLocale();
+
+    String getSeoKeywords();
+
+    String getSeoDescription();
 }

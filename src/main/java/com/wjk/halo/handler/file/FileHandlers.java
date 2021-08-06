@@ -45,6 +45,7 @@ public class FileHandlers {
                 .delete(attachment.getFileKey());
     }
 
+    //获取文件的上传类型，默认为提交到本地
     private FileHandler getSupportedType(AttachmentType type){
         FileHandler handler = fileHandlers.getOrDefault(type, fileHandlers.get(AttachmentType.LOCAL));
         if (handler == null){
@@ -52,7 +53,7 @@ public class FileHandlers {
         }
         return handler;
     }
-
+    //getSupportedType：获得上传地址类型所对应的上传方法
     @NonNull
     public UploadResult upload(@NonNull MultipartFile file, @NonNull AttachmentType attachmentType){
         return getSupportedType(attachmentType).upload(file);

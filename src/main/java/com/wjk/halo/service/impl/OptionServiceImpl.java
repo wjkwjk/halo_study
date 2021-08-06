@@ -173,7 +173,7 @@ public class OptionServiceImpl extends AbstractCrudService<Option, Integer> impl
 
     @Deprecated
     @Transactional
-    private void save(@NonNull String key, @Nullable String value){
+    public void save(@NonNull String key, @Nullable String value){
         save(Collections.singletonMap(key, value));
     }
 
@@ -420,6 +420,16 @@ public class OptionServiceImpl extends AbstractCrudService<Option, Integer> impl
                 return Locale.getDefault();
             }
         }).orElseGet(Locale::getDefault);
+    }
+
+    @Override
+    public String getSeoKeywords() {
+        return getByProperty(SeoProperties.KEYWORDS).orElse("").toString();
+    }
+
+    @Override
+    public String getSeoDescription() {
+        return getByProperty(SeoProperties.DESCRIPTION).orElse("").toString();
     }
 
     @NonNull
