@@ -643,6 +643,14 @@ public class ThemeServiceImpl implements ThemeService {
         eventPublisher.publishEvent(new ThemeUpdatedEvent(this));
     }
 
+    @Override
+    public String renderWithSuffix(String pageName) {
+        // Get activated theme
+        ThemeProperty activatedTheme = getActivatedTheme();
+        // Build render url
+        return String.format(RENDER_TEMPLATE_SUFFIX, activatedTheme.getFolderName(), pageName);
+    }
+
     @NonNull
     private Path getThemeRootPath(@NonNull Path themePath) throws IOException {
         return FileUtils.findRootPath(themePath,

@@ -20,4 +20,6 @@ public interface CacheStore<K,V> {
     //删除键
     void delete(@NonNull K key);
 
+    Boolean putIfAbsent(@NonNull K key, @NonNull V value, long timeout, @NonNull TimeUnit timeUnit);
+
 }

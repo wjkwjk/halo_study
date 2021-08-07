@@ -71,6 +71,11 @@ public abstract class AbstractCacheStore<K,V> implements CacheStore<K,V> {
         });
     }
 
+    @Override
+    public Boolean putIfAbsent(K key, V value, long timeout, TimeUnit timeUnit) {
+        return putInternalIfAbsent(key, buildCacheWrapper(value, timeout, timeUnit));
+    }
 
+    abstract Boolean putInternalIfAbsent(@NonNull K key, @NonNull CacheWrapper<V> cacheWrapper);
 
 }

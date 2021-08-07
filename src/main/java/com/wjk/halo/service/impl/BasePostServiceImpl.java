@@ -211,6 +211,30 @@ public abstract class BasePostServiceImpl<POST extends BasePost> extends Abstrac
         return post;
     }
 
+    @Override
+    @Transactional
+    public void increaseVisit(Integer postId) {
+        increaseVisit(1L, postId);
+    }
+
+    @Override
+    @Transactional
+    public void increaseVisit(long visits, Integer postId) {
+        boolean finishedIncrease;
+        if (basePostRepository.getByIdAndStatus(postId, PostStatus.DRAFT).isPresent()){
+            finishedIncrease = true;
+            log.info("Post with id: [{}] is a draft and visits will not be updated", postId);
+        }else {
+            finishedIncrease = basePostRepository.updateVisit(visits, postId) == 1;
+        }
+
+        if (!finishedIncrease){
+            log.error("Post with id: [{}] may not be found", postId);
+            throw new BadRequestException("Failed to increase visits " + visits + " for post with id " + postId);
+        }
+
+    }
+
 
     @NonNull
     protected String generateSummary(@NonNull String htmlContent){

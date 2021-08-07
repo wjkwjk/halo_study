@@ -1,6 +1,5 @@
 package com.wjk.halo.listener.freemarker;
 
-import com.wjk.halo.event.user.UserUpdateEvent;
 import com.wjk.halo.service.UserService;
 import freemarker.template.Configuration;
 import freemarker.template.TemplateModelException;

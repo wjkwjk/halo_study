@@ -6,6 +6,8 @@ import java.util.Optional;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Slf4j
 public class InMemoryCacheStore extends AbstractStringCacheStore{
@@ -13,6 +15,8 @@ public class InMemoryCacheStore extends AbstractStringCacheStore{
     private final Timer timer;
 
     private final static long PERIOD = 60 * 1000;
+
+    private final Lock lock = new ReentrantLock();
 
     public InMemoryCacheStore(){
         timer = new Timer();
@@ -38,6 +42,29 @@ public class InMemoryCacheStore extends AbstractStringCacheStore{
     @Override
     Optional<CacheWrapper<String>> getInternal(String key) {
         return Optional.ofNullable(CACHE_CONTAINER.get(key));
+    }
+
+    @Override
+    Boolean putInternalIfAbsent(String key, CacheWrapper<String> cacheWrapper) {
+
+        log.debug("Preparing to put key: [{}], value: [{}]", key, cacheWrapper);
+
+        lock.lock();
+        try {
+            Optional<String> valueOptional = get(key);
+
+            if (valueOptional.isPresent()){
+                log.warn("Failed to put the cache, because the key: [{}] has been present already", key);
+                return false;
+            }
+
+            putInternal(key, cacheWrapper);
+            log.debug("Put successfully");
+            return true;
+        }finally {
+            lock.unlock();
+        }
+
     }
 
     @Override

@@ -349,6 +349,14 @@
             <version>1.84</version>
         </dependency>
 
+        <!-- https://mvnrepository.com/artifact/org.flywaydb/flyway-core -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+            <version>6.5.0</version>
+        </dependency>
+
+
         <!-- https://mvnrepository.com/artifact/org.jenkins-ci/annotation-indexer -->
 <!--        <dependency>-->
 <!--            <groupId>org.jenkins-ci</groupId>-->

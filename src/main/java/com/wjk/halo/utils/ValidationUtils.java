@@ -5,10 +5,10 @@ import org.hibernate.validator.internal.engine.path.PathImpl;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.util.CollectionUtils;
+import org.springframework.validation.FieldError;
 
 import javax.validation.*;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class ValidationUtils {
@@ -79,5 +79,25 @@ public class ValidationUtils {
         }
     }
 
+    @NonNull
+    public static Map<String, String> mapWithValidError(Set<ConstraintViolation<?>> constraintViolations){
+        if (CollectionUtils.isEmpty(constraintViolations)){
+            return Collections.emptyMap();
+        }
+        Map<String, String> errMap = new HashMap<>(4);
+        constraintViolations.forEach(constraintViolation ->
+                errMap.put(constraintViolation.getPropertyPath().toString(), constraintViolation.getMessage()));
+        return errMap;
+    }
+
+    public static Map<String, String> mapWithFieldError(@Nullable List<FieldError> fieldErrors){
+        if (CollectionUtils.isEmpty(fieldErrors)){
+            return Collections.emptyMap();
+        }
+
+        Map<String, String> errMap = new HashMap<>(4);
+        fieldErrors.forEach(fieldError -> errMap.put(fieldError.getField(), fieldError.getDefaultMessage()));
+        return errMap;
+    }
 
 }

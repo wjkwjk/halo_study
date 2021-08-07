@@ -110,4 +110,19 @@ public class HaloUtils {
         return pathname.replace(FILE_SEPARATOR, "/");
     }
 
+    @NonNull
+    public static String ensureBoth(@NonNull String string, @NonNull String bothfix){
+        return ensureBoth(string, bothfix, bothfix);
+    }
+
+    @NonNull
+    public static String ensureBoth(@NonNull String string, @NonNull String prefix, @NonNull String suffix){
+        return ensureSuffix(ensurePrefix(string, prefix), suffix);
+    }
+
+    @NonNull
+    public static String ensurePrefix(@NonNull String string, @NonNull String prefix){
+        return prefix + StringUtils.removeStart(string, prefix);
+    }
+
 }

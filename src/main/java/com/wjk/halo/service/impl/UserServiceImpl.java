@@ -6,7 +6,6 @@ import com.wjk.halo.event.user.UserUpdatedEvent;
 import com.wjk.halo.exception.BadRequestException;
 import com.wjk.halo.exception.ServiceException;
 import com.wjk.halo.event.logger.LogEvent;
-import com.wjk.halo.event.user.UserUpdateEvent;
 import com.wjk.halo.exception.ForbiddenException;
 import com.wjk.halo.exception.NotFoundException;
 import com.wjk.halo.model.entity.User;
@@ -144,7 +143,7 @@ public class UserServiceImpl extends AbstractCrudService<User, Integer> implemen
         User updateUser = super.update(user);
 
         eventPublisher.publishEvent(new LogEvent(this, user.getId().toString(), LogType.PROFILE_UPDATED, user.getUsername()));
-        eventPublisher.publishEvent(new UserUpdateEvent(this, user.getId()));
+        eventPublisher.publishEvent(new UserUpdatedEvent(this, user.getId()));
         return updateUser;
     }
 

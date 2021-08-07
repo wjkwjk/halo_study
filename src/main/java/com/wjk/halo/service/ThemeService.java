@@ -31,6 +31,7 @@ public interface ThemeService {
 
     String DEFAULT_REMOTE_BRANCH = "master";
 
+    String RENDER_TEMPLATE_SUFFIX = "themes/%s/%s.ftl";
 
     /**
      * The type of file that can be modified.
@@ -120,4 +121,7 @@ public interface ThemeService {
     ThemeProperty fetchLatestRelease(@NonNull String uri);
 
     void reload();
+
+    @NonNull
+    String renderWithSuffix(@NonNull String pageName);
 }

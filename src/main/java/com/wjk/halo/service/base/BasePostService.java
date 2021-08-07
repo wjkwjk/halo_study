@@ -56,4 +56,8 @@ public interface BasePostService<POST extends BasePost> extends CrudService<POST
 
     @NonNull
     POST updateDraftContent(@Nullable String content, @NonNull Integer postId);
+
+    void increaseVisit(@NonNull Integer postId);
+
+    void increaseVisit(long visits, @NonNull Integer postId);
 }
