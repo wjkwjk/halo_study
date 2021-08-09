@@ -1,5 +1,6 @@
 package com.wjk.halo.listener.freemarker;
 
+import com.wjk.halo.event.user.UserUpdatedEvent;
 import com.wjk.halo.service.UserService;
 import freemarker.template.Configuration;
 import freemarker.template.TemplateModelException;
@@ -20,7 +21,7 @@ public class FreemarkerConfigAwareListener {
     }
 
     @EventListener
-    public void onUserUpdate(UserUpdateEvent event) throws TemplateModelException{
+    public void onUserUpdate(UserUpdatedEvent event) throws TemplateModelException{
         log.debug("Received user updated event, user id: [{}]", event.getUserId());
 
         loadUserConfig();
