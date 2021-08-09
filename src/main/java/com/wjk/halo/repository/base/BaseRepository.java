@@ -1,5 +1,7 @@
 package com.wjk.halo.repository.base;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.NoRepositoryBean;
@@ -14,4 +16,7 @@ public interface BaseRepository<DOMAIN, ID> extends JpaRepository<DOMAIN, ID> {
 
     @NonNull
     List<DOMAIN> findAllByIdIn(@NonNull Collection<ID> ids, @NonNull Sort sort);
+
+    @NonNull
+    Page<DOMAIN> findAllByIdIn(@NonNull Collection<ID> ids, @NonNull Pageable pageable);
 }

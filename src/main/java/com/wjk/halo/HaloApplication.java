@@ -9,9 +9,9 @@ import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
-@EnableAsync
-@EnableScheduling
-@EnableJpaRepositories(basePackages = "com.wjk.halo.repository", repositoryBaseClass = BaseRepositoryImpl.class)
+//@EnableAsync
+//@EnableScheduling
+//@EnableJpaRepositories(basePackages = "com.wjk.halo.repository", repositoryBaseClass = BaseRepositoryImpl.class)
 public class HaloApplication {
 
     public static void main(String[] args) {
