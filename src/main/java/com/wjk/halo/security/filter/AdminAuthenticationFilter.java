@@ -48,8 +48,10 @@ public class AdminAuthenticationFilter extends AbstractAuthenticationFilter{
         this.userService = userService;
         this.haloProperties = haloProperties;
 
+        //在访问接口前需要进行验证的api
         addUrlPatterns("/api/admin/**", "/api/content/comments");
 
+        //在访问接口前不需要进行验证的api
         addExcludeUrlPatterns(
                 "/api/admin/login",
                 "/api/admin/refresh/*",
@@ -71,7 +73,7 @@ public class AdminAuthenticationFilter extends AbstractAuthenticationFilter{
     @Override
     protected void doAuthenticate(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         if (!haloProperties.isAuthEnabled()){
-            //如果不允许授权，则查询当前用户，并用当前用户的身份授权
+            //如果不允许授权，则查询当前用户，并用当前用户的身份授权，将当前用户的身份存储在本地线程
             userService.getCurrentUser().ifPresent(user ->
                     SecurityContextHolder.setContext(new SecurityContextImpl(new AuthenticationImpl(new UserDetail(user)))));
             filterChain.doFilter(request, response);
@@ -95,7 +97,7 @@ public class AdminAuthenticationFilter extends AbstractAuthenticationFilter{
 
         UserDetail userDetail = new UserDetail(user);
 
-        //授权
+        //将用户信息存储在线程本地
         SecurityContextHolder.setContext(new SecurityContextImpl(new AuthenticationImpl(userDetail)));
 
         filterChain.doFilter(request, response);

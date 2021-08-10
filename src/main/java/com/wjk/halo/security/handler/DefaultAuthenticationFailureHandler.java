@@ -32,6 +32,7 @@ public class DefaultAuthenticationFailureHandler implements AuthenticationFailur
         this.objectMapper = objectMapper;
     }
 
+    //用来设置出现异常时，response中的参数信息
     @Override
     public void onFailure(HttpServletRequest request, HttpServletResponse response, AbstractHaloException exception) throws IOException, ServletException {
         log.warn("Handle unsuccessful authentication, ip: [{}]", ServletUtil.getClientIP(request));

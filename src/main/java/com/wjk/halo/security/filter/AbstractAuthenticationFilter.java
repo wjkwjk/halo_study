@@ -80,17 +80,22 @@ public abstract class AbstractAuthenticationFilter extends OncePerRequestFilter 
         }
 
         try {
-            //一次性token
+            //进行一次性token验证，包括是否存储有该token，该token对应的请求来源地址与当前的请求来源地址是否匹配
+            //该一次性token验证用于用户登录成功后，存储在线程内部，使得之后的每次的请求不用到内存中读取token
+            //主要是为了加快过滤速度
             if (isSufficientOneTimeToken(request)){
                 //token验证成功，则继续其他验证
                 filterChain.doFilter(request, response);
                 return;
             }
-            //没有token，则进行验证
+            //没有token，则根据是普通用户还是管理员进行授权，即为用户生成权限，并存储在本本地
+            //此时需要进行登陆判断
             doAuthenticate(request, response, filterChain);
         }catch (AbstractHaloException e){
             getFailureHandler().onFailure(request, response, e);
         }finally {
+            //由于一次性token用于在用户登陆后，防止每次请求到来都需要从内存中取token，导致速度变慢
+            //删除一次性过滤器
             SecurityContextHolder.clearContext();
         }
 
@@ -117,11 +122,12 @@ public abstract class AbstractAuthenticationFilter extends OncePerRequestFilter 
             //没有token，返回
             return false;
         }
-
+        //若存在token，则从缓存中获取该token，如果获取不到，则返回失败
+        //若缓存中确实存在该token，则获取token对应的值，即该token所对应的请求来源地址
         String allowedUri = oneTimeTokenService.get(oneTimeToken)
                 .orElseThrow(() -> new BadRequestException("The one-time token does not exist").setErrorData(oneTimeToken));
         String requestUri = request.getRequestURI();
-
+        //token对应的请求来源地址与当前的请求来源地址不匹配
         if (!StringUtils.equals(requestUri, allowedUri)){
             throw new ForbiddenException("The one-time token does not correspond the request uri").setErrorData(oneTimeToken);
         }
@@ -131,6 +137,8 @@ public abstract class AbstractAuthenticationFilter extends OncePerRequestFilter 
         return true;
     }
 
+    //请求中，有可能在两个地方存储了token
+    //获得token
     protected String getTokenFromRequest(@NonNull HttpServletRequest request, @NonNull String tokenQueryName, @NonNull String tokenHeaderName){
         String accessKey = request.getHeader(tokenHeaderName);
 
@@ -148,6 +156,7 @@ public abstract class AbstractAuthenticationFilter extends OncePerRequestFilter 
     @Nullable
     protected abstract String getTokenFromRequest(@NonNull HttpServletRequest httpServletRequest);
 
+    //判断当前访问的api是否需要该过滤器进行过滤
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         boolean result = excludeUrlPatterns.stream().anyMatch(p -> antPathMatcher.match(p, urlPathHelper.getRequestUri(request)));

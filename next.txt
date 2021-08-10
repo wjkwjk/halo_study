@@ -1,6 +1,5 @@
-更新aspect;
-更新cache.lock,主要是里面的CacheLockInterceptor，用于解决缓存锁问题；
-更新security.resolver，用于请求参数的解析；
-更新config.HaloRequestMappingHandlerMapping；
-更新core,其中的文件主要用于在返回response，产生日志，异常时进行处理的切面；
-完善了所有的事件，监听器；
+学习完了security文件夹；
+写完WebMvcAutoConfiguration
+还需学习cache文件夹，config文件夹；
+重点在于处理config的WebMvcAutoConfiguration；
+学历过滤器链是怎么定义先后顺序的，然后将过滤器链写出来，便于理解

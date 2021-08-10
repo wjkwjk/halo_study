@@ -1,0 +1,4 @@
+ObjectMapper：用于在字符串与对象之间进行转换
+    ObjectMapper mapper = new ObjectMapper();
+    String jsonStr = mapper.writeValueAsString(testMap);    //将map转换为字符串
+    Map<String, Object> testMapDes = mapper.readValue(jsonStr, Map.class);  //将字符串转换为map类型

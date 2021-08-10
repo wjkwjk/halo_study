@@ -6,6 +6,7 @@ import com.wjk.halo.exception.ForbiddenException;
 import com.wjk.halo.model.enums.Mode;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.stereotype.Component;
@@ -21,9 +22,12 @@ public class DisableOnConditionAspect {
         this.haloProperties = haloProperties;
     }
 
+    //切入点为自定义的DisableOnCondition注解
     @Pointcut("@annotation(com.wjk.halo.annotation.DisableOnCondition)")
     public void pointcut(){}
 
+    //可以通过设置api上的DisableOnCondition中的mode，来禁止某些api
+    @Around("pointcut() && @annotation(disableApi)")
     public Object around(ProceedingJoinPoint joinPoint, DisableOnCondition disableApi) throws Throwable{
         Mode mode = disableApi.mode();
         if (haloProperties.getMode().equals(mode)){
