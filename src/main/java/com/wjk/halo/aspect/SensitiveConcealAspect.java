@@ -12,11 +12,17 @@ import org.springframework.stereotype.Component;
 @Component
 public class SensitiveConcealAspect {
 
-    //切入点为SensitiveConceal注解
+    /**
+     * 切入点为SensitiveConceal注解
+     */
     @Pointcut("@annotation(com.wjk.halo.annotation.SensitiveConceal)")
     public void pointcut(){}
 
-    //用于遮挡敏感信息
+    /**
+     * 用于将评论中的敏感信息置空：email,ipAddress
+     * @param comment
+     * @return
+     */
     private Object sensitiveMask(Object comment){
         if (comment instanceof BaseComment){
             ((BaseComment) comment).setEmail("");
@@ -25,17 +31,20 @@ public class SensitiveConcealAspect {
         return comment;
     }
 
-    //作用于SensitiveConceal注解的环绕通知
-
     /**
+     *作用于SensitiveConceal注解的环绕通知
+     *
      *ProceedingJoinPoint对象是JoinPoint的子接口,该对象只用在@Around的切面方法中,
      * 添加了
      * Object proceed() throws Throwable //执行目标方法
      * Object proceed(Object[] var1) throws Throwable //传入的新的参数去执行目标方法
+     *
+     * 该注解一般用在数据库查询上，执行数据库查询，返回查询结果。对返回的查询结果进行处理，防止泄漏敏感的信息
      */
     @Around("pointcut()")
     public Object mask(ProceedingJoinPoint joinPoint) throws Throwable{
-        //，一般用在数据库查询上，因此执行数据库查询，返回查询结果
+
+        //运行目标方法
         Object result = joinPoint.proceed();
 
         //如果已经授权，则返回全部结果

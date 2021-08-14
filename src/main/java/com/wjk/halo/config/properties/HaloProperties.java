@@ -17,6 +17,8 @@ public class HaloProperties {
 
     private String cache = "memory";
 
+    //用来定义不同的模式：测试、生产等
+    //通过设置注解的属性，可以控制哪些api在哪些模式下使用
     private Mode mode = Mode.PRODUCTION;
 
     private String workDir = ensureSuffix(USER_HOME, FILE_SEPARATOR) + ".halo" + FILE_SEPARATOR;

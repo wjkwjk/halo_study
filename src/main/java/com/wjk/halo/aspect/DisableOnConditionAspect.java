@@ -22,11 +22,17 @@ public class DisableOnConditionAspect {
         this.haloProperties = haloProperties;
     }
 
-    //切入点为自定义的DisableOnCondition注解
+    /**
+     * 切入点为自定义的DisableOnCondition注解
+     */
     @Pointcut("@annotation(com.wjk.halo.annotation.DisableOnCondition)")
     public void pointcut(){}
 
-    //可以通过设置api上的DisableOnCondition中的mode，来禁止某些api
+    /**
+     * 可以通过设置api上的DisableOnCondition中的mode，来禁止某些api
+     * 环绕通知
+     *
+     */
     @Around("pointcut() && @annotation(disableApi)")
     public Object around(ProceedingJoinPoint joinPoint, DisableOnCondition disableApi) throws Throwable{
         Mode mode = disableApi.mode();

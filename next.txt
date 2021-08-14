@@ -1,5 +1,3 @@
-学习完了security文件夹；
-写完WebMvcAutoConfiguration
-还需学习cache文件夹，config文件夹；
-重点在于处理config的WebMvcAutoConfiguration；
+基本理解两个注解；
+接下来仔细理解CommonResultControllerAdvice,搞懂每句话
 学历过滤器链是怎么定义先后顺序的，然后将过滤器链写出来，便于理解
