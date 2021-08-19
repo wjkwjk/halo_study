@@ -8,6 +8,10 @@ import org.springframework.data.domain.Page;
 
 import java.io.IOException;
 
+/**
+ * 自定义Page对象的序列化方法
+ */
+
 public class PageJacksonSerializer extends JsonSerializer<Page> {
 
     @Override

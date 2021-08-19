@@ -90,6 +90,12 @@ public class ValidationUtils {
         return errMap;
     }
 
+    /**
+     * 当请求字段不符合@Valid验证时，会抛出异常，异常中包含了错误的字段以及对应的异常信息
+     * 此函数的作用就是将错误的字段以及对应的异常信息封装到map中
+     * @param fieldErrors
+     * @return
+     */
     public static Map<String, String> mapWithFieldError(@Nullable List<FieldError> fieldErrors){
         if (CollectionUtils.isEmpty(fieldErrors)){
             return Collections.emptyMap();

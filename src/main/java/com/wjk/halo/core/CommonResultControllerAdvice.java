@@ -27,6 +27,11 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
  *      注册到RequestMappingHandlerAdapter中
  */
 
+/**
+ * 该类的作用首先判断返回类型是否可以转换为json类型，如果可以转换为json类型，那么设置返回码
+ *  因为原本自定义的返回类型中的返回码是整数值，通过该类将返回码设置为数字对应的HttpStatsus中的 枚举类型
+ */
+
 @ControllerAdvice("com.wjk.halo.controller")
 public class CommonResultControllerAdvice implements ResponseBodyAdvice<Object> {
 
@@ -95,12 +100,15 @@ public class CommonResultControllerAdvice implements ResponseBodyAdvice<Object> 
                                          ServerHttpResponse response){
         //获取待序列化对象
         Object returnBody = bodyContainer.getValue();
+
+        //判断返回类型是不是自己定义的返回类型
         if (returnBody instanceof BaseResponse){
             BaseResponse<?> baseResponse = (BaseResponse<?>) returnBody;
+            //设置返回码
             response.setStatusCode(HttpStatus.resolve(baseResponse.getStatus()));
             return;
         }
-
+        //如果返回类型不是自己定义的返回类型，那么返回ok的返回类型
         BaseResponse<?> baseResponse = BaseResponse.ok(returnBody);
         bodyContainer.setValue(baseResponse);
         response.setStatusCode(HttpStatus.valueOf(baseResponse.getStatus()));

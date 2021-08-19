@@ -22,10 +22,32 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 
 import java.util.Map;
 
+/**
+ * 该类主要用于捕获异常，然后使得发生异常时返回的格式和正常返回格式相同
+ */
+
+/**
+ * @RestControllerAdvice 注解，可以用于定义@ExceptionHandler、@InitBinder、@ModelAttribute，并应用到所有@RequestMapping中
+ * 　主要配合@ExceptionHandler使用，统一处理异常情况
+ *
+ * 使用动机是：想要出现异常时的返回格式和正常返回时的格式相同，因此使用该接口来捕获指定的异常类型，进行格式转换或者其他操作
+ *
+ * RestControllerAdvice = ControllerAdvice + ResponseBody
+ */
+
+/**
+ * @ExceptionHandler(Class)：用在方法上，使用该方法中处理括号中的异常类
+ */
+
 @RestControllerAdvice(value = {"com.wjk.halo.controller.admin.api", "com.wjk.halo.controller.content.api"})
 @Slf4j
 public class ControllerExceptionHandler {
 
+    /**
+     * DataIntegrityViolationException.class：在更新数据库时，出现了违反数据完整性的异常，例如，主键重复，列数据太长
+     * @ResponseStatus(HttpStatus.BAD_REQUEST) ： 设置返回码
+     * @return
+     */
     @ExceptionHandler(DataIntegrityViolationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public BaseResponse<?> handleDataIntegrityViolationException(DataIntegrityViolationException e){
@@ -37,6 +59,9 @@ public class ControllerExceptionHandler {
         return baseResponse;
     }
 
+    /**
+     * 缺少请求参数异常
+     */
     @ExceptionHandler(MissingServletRequestParameterException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public BaseResponse<?> handleMissingServletRequestParameterException(MissingServletRequestParameterException e){
@@ -55,17 +80,25 @@ public class ControllerExceptionHandler {
         return baseResponse;
     }
 
+    /**
+     *方法参数异常，即请求中的参数不符合@Valid验证（model/params下的类，每个变量上注解，即是用于验证的）
+     * 再返回信息中设置遗验证错误的字段以及对应的错误信息
+     */
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public BaseResponse<?> handleMethodArgumentNotValidException(MethodArgumentNotValidException e){
         BaseResponse<Map<String, String>> baseResponse = handleBaseException(e);
         baseResponse.setStatus(HttpStatus.BAD_REQUEST.value());
         baseResponse.setMessage("字段验证错误，请完善后重试！");
+        //将验证失败的字段以及对应的错误信息封装成map
         Map<String, String> errMap = ValidationUtils.mapWithFieldError(e.getBindingResult().getFieldErrors());
         baseResponse.setData(errMap);
         return baseResponse;
     }
 
+    /**
+     *请求方式不支持（例如POST,GET等）
+     */
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public BaseResponse<?> handleHttpRequestMethodNotSupportedException(HttpRequestMethodNotSupportedException e){
@@ -74,6 +107,11 @@ public class ControllerExceptionHandler {
         return baseResponse;
     }
 
+    /**
+     * http请求报头[Request Headers]中的Accept字段，是否与服务器返回的响应报头[Response Headers]的Content-Type是否匹配，如不匹配，则会抛出该错误。
+     * Accept表示浏览器期望请求得到资源类型
+     * Content-Type表示服务器返回资源类型
+     */
     @ExceptionHandler(HttpMediaTypeNotAcceptableException.class)
     @ResponseStatus(HttpStatus.NOT_ACCEPTABLE)
     public BaseResponse<?> handleHttpMediaTypeNotAcceptableException(HttpMediaTypeNotAcceptableException e){
@@ -82,6 +120,11 @@ public class ControllerExceptionHandler {
         return baseResponse;
     }
 
+    /**
+     * 一般是有反序列化失败引起的，造成无法读取请求信息
+     * @param e
+     * @return
+     */
     @ExceptionHandler(HttpMessageNotReadableException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public BaseResponse<?> handleHttpMessageNotReadableException(HttpMessageNotReadableException e) {
@@ -91,6 +134,11 @@ public class ControllerExceptionHandler {
         return baseResponse;
     }
 
+    /**
+     * 请求找不到对应的处理方法，即出现404（相当于当前请求的api，没有在conroller中出现）
+     * @param e
+     * @return
+     */
     @ExceptionHandler(NoHandlerFoundException.class)
     @ResponseStatus(HttpStatus.BAD_GATEWAY)
     public BaseResponse<?> handleNoHandlerFoundException(NoHandlerFoundException e) {
@@ -101,6 +149,9 @@ public class ControllerExceptionHandler {
         return baseResponse;
     }
 
+    /**
+     * 上传的文件大小限制
+     */
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public BaseResponse<?> handleUploadSizeExceededException(MaxUploadSizeExceededException e) {
@@ -110,6 +161,9 @@ public class ControllerExceptionHandler {
         return response;
     }
 
+    /**
+     * 处理自定义的异常
+     */
     @ExceptionHandler(AbstractHaloException.class)
     public ResponseEntity<BaseResponse<?>> handleHaloException(AbstractHaloException e) {
         BaseResponse<Object> baseResponse = handleBaseException(e);
@@ -118,6 +172,9 @@ public class ControllerExceptionHandler {
         return new ResponseEntity<>(baseResponse, e.getStatus());
     }
 
+    /**
+     * 处理其他的异常
+     */
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public BaseResponse<?> handleGlobalException(Exception e) {
@@ -128,12 +185,19 @@ public class ControllerExceptionHandler {
         return baseResponse;
     }
 
+    /**
+     * 生成基本的返回体，因为目的是想要让发生异常的时的返回格式和普通的返回格式相同，因此首先生成的基本的返回格式，然后将异常数据放到里面
+     * @param t
+     * @param <T>
+     * @return
+     */
     private <T> BaseResponse<T> handleBaseException(Throwable t){
         BaseResponse<T> baseResponse = new BaseResponse<>();
         baseResponse.setMessage(t.getMessage());
 
         if (log.isDebugEnabled()){
             log.error("Captured an exception:", t);
+            //将异常数据转换为String类型，然后放到返回返回体中
             baseResponse.setDevMessage(ExceptionUtils.getStackTrace(t));
         }else {
             log.error("Captured an exception: [{}]", t.getMessage());
