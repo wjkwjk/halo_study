@@ -39,6 +39,7 @@ public class StaticStorageServiceImpl implements StaticStorageService, Applicati
 
     public StaticStorageServiceImpl(HaloProperties haloProperties,
                                     ApplicationEventPublisher eventPublisher) throws IOException {
+        //staticDir: 用户根目录/.halo/static
         staticDir = Paths.get(haloProperties.getWorkDir(), STATIC_FOLDER);
         this.eventPublisher = eventPublisher;
         FileUtils.createIfAbsent(staticDir);
@@ -49,10 +50,17 @@ public class StaticStorageServiceImpl implements StaticStorageService, Applicati
         onChange();
     }
 
+    /**
+     * 发布StaticStorageChangedEvent事件
+     */
     private void onChange(){
         eventPublisher.publishEvent(new StaticStorageChangedEvent(this, staticDir));
     }
 
+    /**
+     * 用树的结构返回staticDir下的所有目录和文件
+     * @return
+     */
     @Override
     public List<StaticFile> listStaticFolder() {
         return listStaticFileTree(staticDir);
@@ -107,14 +115,19 @@ public class StaticStorageServiceImpl implements StaticStorageService, Applicati
 
     }
 
+    /**
+     * 前端发送了file，用来更新basePath
+     * @param basePath
+     * @param file
+     */
     @Override
     public void upload(String basePath, MultipartFile file) {
         Path uploadPath;
-
+        //判断上传的文件名是否已api开头
         if (StringUtils.startsWith(file.getOriginalFilename(), API_FOLDER_NAME)){
             throw new FileOperationException("文件名称 " + file.getOriginalFilename() + " 不合法");
         }
-
+        //拼接得到用于存放上传的文件的目录
         if (StringUtils.isEmpty(basePath)){
             uploadPath = Paths.get(staticDir.toString(), file.getOriginalFilename());
         }else {
@@ -127,9 +140,11 @@ public class StaticStorageServiceImpl implements StaticStorageService, Applicati
             throw new FileOperationException("文件 " + file.getOriginalFilename() + " 已存在").setErrorData(uploadPath);
         }
 
+        //保存用户上传的文件
         try {
             Files.createFile(uploadPath);
             file.transferTo(uploadPath);
+            //发送事件
             onChange();
         }catch (IOException e){
             throw new ServiceException("上传文件失败").setErrorData(uploadPath);
@@ -178,12 +193,19 @@ public class StaticStorageServiceImpl implements StaticStorageService, Applicati
         }
     }
 
+    /**
+     * 递归遍历 topPath下的文件/文件夹，并以树的形式返回
+     * @param topPath
+     * @return
+     */
+
     @Nullable
     private List<StaticFile> listStaticFileTree(@NonNull Path topPath){
         if (!Files.isDirectory(topPath)){
             return null;
         }
 
+        //Files.list(topPath)：返回topPath下的一级文件和一级目录
         try(Stream<Path> pathStream = Files.list(topPath)) {
             List<StaticFile> staticFiles = new LinkedList<>();
 
@@ -201,6 +223,9 @@ public class StaticStorageServiceImpl implements StaticStorageService, Applicati
                 }
                 staticFile.setMimeType(MimetypesFileTypeMap.getDefaultFileTypeMap().getContentType(path.toFile()));
                 if (Files.isDirectory(path)){
+                    /**
+                     * 递归，生成文件树
+                     */
                     staticFile.setChildren(listStaticFileTree(path));
                 }
                 staticFiles.add(staticFile);

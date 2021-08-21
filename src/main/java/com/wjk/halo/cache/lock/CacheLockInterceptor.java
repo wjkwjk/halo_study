@@ -32,8 +32,17 @@ public class CacheLockInterceptor {
         this.cacheStore = cacheStore;
     }
 
+    /**
+     * CacheLock注解的环绕通知
+     * @param joinPoint
+     * @return
+     * @throws Throwable
+     */
     @Around("@annotation(com.wjk.halo.cache.lock.CacheLock)")
     public Object interceptCacheLock(ProceedingJoinPoint joinPoint) throws Throwable{
+        /**
+         * 获得目标类
+         */
         MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();
 
         log.debug("Starting locking: [{}]", methodSignature.toString());

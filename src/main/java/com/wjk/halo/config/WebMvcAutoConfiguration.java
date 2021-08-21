@@ -59,8 +59,14 @@ public class WebMvcAutoConfiguration extends WebMvcConfigurationSupport {
 
     private static final String FILE_PROTOCOL = "file:///";
 
+    /**
+     * 分页解析器，从请求参数中提取分页信息
+     */
     private final PageableHandlerMethodArgumentResolver pageableResolver;
 
+    /**
+     * 排序解析器
+     */
     private final SortHandlerMethodArgumentResolver sortResolver;
 
     private final HaloProperties haloProperties;
@@ -73,14 +79,24 @@ public class WebMvcAutoConfiguration extends WebMvcConfigurationSupport {
         this.haloProperties = haloProperties;
     }
 
+    /**
+     * 配置消息转换器
+     * 添加自定义消息转换器不覆盖默认转换器
+     * @param converters：已经配置好的消息转换器列表
+     */
     @Override
     protected void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
+        /**
+         * 遍历所有已经配置好的消息转换器列表
+         * 过滤掉不属于MappingJackson2HttpMessageConverter的转换器
+         * 找到第一个属于MappingJackson2HttpMessageConverter的转换器
+         */
         converters.stream()
                 .filter(c -> c instanceof MappingJackson2HttpMessageConverter)
                 .findFirst()
                 .ifPresent(converter -> {
                     MappingJackson2HttpMessageConverter mappingJackson2HttpMessageConverter = (MappingJackson2HttpMessageConverter) converter;
-                    Jackson2ObjectMapperBuilder builder = Jackson2ObjectMapperBuilder.json();
+                    Jackson2ObjectMapperBuilder builder = Jackson2ObjectMapperBuilder.json();   //获取一个Jackson2ObjectMapperBuilder实例
                     JsonComponentModule module = new JsonComponentModule();
                     module.addSerializer(PageImpl.class, new PageJacksonSerializer());
                     ObjectMapper objectMapper = builder.modules(module).build();
@@ -91,6 +107,9 @@ public class WebMvcAutoConfiguration extends WebMvcConfigurationSupport {
     //增加参数解析器
     @Override
     protected void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
+        /**
+         * 添加权限验证参数解析器
+         */
         resolvers.add(new AuthenticationArgumentResolver());
         resolvers.add(pageableResolver);
         resolvers.add(sortResolver);
@@ -99,10 +118,14 @@ public class WebMvcAutoConfiguration extends WebMvcConfigurationSupport {
     /**
      * Configuring static resource path
      *
+     *  配置静态资源访问，避免静态资源被拦截
+     *  addResourceHandler（） 添加的是访问路径
+     *  addResourceLocations（）添加的是映射后的真实路径，映射的真实路径末尾必须加 /
      * @param registry registry
      */
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        // workDir :   file://用户根目录/.halo/
         String workDir = FILE_PROTOCOL + ensureSuffix(haloProperties.getWorkDir(), FILE_SEPARATOR);
 
         // register /** resource handler.
@@ -110,16 +133,28 @@ public class WebMvcAutoConfiguration extends WebMvcConfigurationSupport {
                 .addResourceLocations("classpath:/admin/")
                 .addResourceLocations(workDir + "static/");
 
+        /**
+         * 使用 /themes/** 访问静态资源，真实的资源访问地址为 templates/themes/
+         */
         // register /themes/** resource handler.
         registry.addResourceHandler("/themes/**")
                 .addResourceLocations(workDir + "templates/themes/");
 
+        // 返回： /upload/**
         String uploadUrlPattern = ensureBoth(haloProperties.getUploadUrlPrefix(), URL_SEPARATOR) + "**";
+        // 返回： admin/**
         String adminPathPattern = ensureSuffix(haloProperties.getAdminPath(), URL_SEPARATOR) + "**";
 
+        /**
+         * 使用/upload/** 访问静态资源，真实的资源访问地址为 file://用户根目录/.halo/upload/
+         */
         registry.addResourceHandler(uploadUrlPattern)
-                .setCacheControl(CacheControl.maxAge(7L, TimeUnit.DAYS))
+                .setCacheControl(CacheControl.maxAge(7L, TimeUnit.DAYS))    //设置返回头中的cache_control字段，缓存时间设为7天
                 .addResourceLocations(workDir + "upload/");
+
+        /**
+         * 使用 admin/** 访问静态资源，真实的资源访问地址为 classpath:/admin/
+         */
         registry.addResourceHandler(adminPathPattern)
                 .addResourceLocations("classpath:/admin/");
 
@@ -172,7 +207,7 @@ public class WebMvcAutoConfiguration extends WebMvcConfigurationSupport {
 
     /**
      * Configuring multipartResolver for large file upload..
-     *
+     *  处理文件上传
      * @return new multipartResolver
      */
     @Bean(name = "multipartResolver")
@@ -192,6 +227,7 @@ public class WebMvcAutoConfiguration extends WebMvcConfigurationSupport {
     /**
      * Configuring view resolver
      *
+     * 配置视图解析器
      * @param registry registry
      */
     @Override

@@ -21,6 +21,8 @@ public class HaloProperties {
     //通过设置注解的属性，可以控制哪些api在哪些模式下使用
     private Mode mode = Mode.PRODUCTION;
 
+    //系统的工作目录
+    //返回的目录为：用户根目录/.halo/
     private String workDir = ensureSuffix(USER_HOME, FILE_SEPARATOR) + ".halo" + FILE_SEPARATOR;
 
     private Duration downloadTimeout = Duration.ofSeconds(30);

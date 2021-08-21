@@ -303,14 +303,21 @@ public class AdminServiceImpl implements AdminService {
 
     }
 
+    /**
+     * 更新系统代码
+     * 首先从githup获取最新版本的代码，然后删除原本的备份代码，将当前使用的系统代码复制到备份目录，
+     * 然后判断最新获取的代码是否可用，可用的话，再复制到正在使用的目录
+     */
     @Override
     public void updateAdminAssets() {
+        //用于向githup仓库请求最新的版本信息，还未获取具体的代码
         ResponseEntity<Map> responseEntity = restTemplate.getForEntity(HALO_ADMIN_RELEASES_LATEST, Map.class);
 
         if (responseEntity.getStatusCode().isError() || responseEntity.getBody() == null){
             log.debug("Failed to request remote url: [{}]", HALO_ADMIN_RELEASES_LATEST);
             throw new ServiceException("系统无法访问到 Github 的 API").setErrorData(HALO_ADMIN_RELEASES_LATEST);
         }
+        //获取版本信息
         Object assetsObject = responseEntity.getBody().get("assets");
 
         if (!(assetsObject instanceof List)){
@@ -320,33 +327,56 @@ public class AdminServiceImpl implements AdminService {
         try {
             List<?> assets = (List<?>) assetsObject;
             Map assetMap = (Map) assets.stream()
-                    .filter(assetPredicate())
-                    .findFirst()
+                    .filter(assetPredicate())   //过滤掉没有满足名字和格式的版本
+                    .findFirst()    //获取满足条件中的最新的系统版本
                     .orElseThrow(() -> new ServiceException("Halo admin 最新版暂无资源文件，请稍后再试"));
 
+            //获得下载地址
             Object browserDownloadUrl = assetMap.getOrDefault("browser_download_url", "");
 
+            //向browserDownloadUrl地址发出一个get请求，并用byte数组接收返回内容，此时请求的是源代码
             ResponseEntity<byte[]> downloadResponseEntity = restTemplate.getForEntity(browserDownloadUrl.toString(), byte[].class);
 
             if (downloadResponseEntity.getStatusCode().isError() || downloadResponseEntity.getBody() == null){
                 throw new ServiceException("Failed to request remote url: " + browserDownloadUrl.toString()).setErrorData(browserDownloadUrl.toString());
             }
 
+            //返回：/用户根目录/.halo/templates/admin/
             String adminTargetName = haloProperties.getWorkDir() + HALO_ADMIN_RELATIVE_PATH;
 
+            /**
+             * 使用adminTargetName构造一个Path对象
+             * Path就是对目录的一个封装，方便获取目录的各个信息，例如是否是绝对路径等
+             */
+            //当时正在使用的系统代码的目录
             Path adminPath = Paths.get(adminTargetName);
+
+            //备份目录
+            //返回：/用户根目录/.halo/templates/admin-backup/
             Path adminBackupPath = Paths.get(haloProperties.getWorkDir(), HALO_ADMIN_RELATIVE_BACKUP_PATH);
 
+            /**
+             * 将当前使用的系统代码作为备份，拷贝到备份目录下
+             */
             backupAndClearAdminAssetsIfPresent(adminPath, adminBackupPath);
 
+            /**
+             * 生成Path，用来存储最新获取的系统代码
+             * 代码放在一个临时目录中
+             */
             Path assetTempPath = FileUtils.createTempDirectory()
                     .resolve(assetMap.getOrDefault("name", "halo-admin-latest.zip").toString());
 
+            //将最新获取的系统代码解压到临时目录
             FileUtils.unzip(downloadResponseEntity.getBody(), assetTempPath);
 
             Path adminRootPath = FileUtils.findRootPath(assetTempPath,
                     path -> StringUtils.equalsIgnoreCase("index.html", path.getFileName().toString()))
                     .orElseThrow(() -> new BadRequestException("无法准确定位到压缩包的根路径，请确认包含 index.html 文件。"));
+
+            /**
+             * 将最新获取的系统代码拷贝到当前使用的目录下
+             */
             FileUtils.copyFolder(adminRootPath, adminPath);
         }catch (Throwable t){
             throw new ServiceException("更新 Halo admin 失败，" + t.getMessage(), t);
@@ -409,6 +439,11 @@ public class AdminServiceImpl implements AdminService {
         return result.toString();
     }
 
+    /**
+     * 用来判断获取的系统版本以及获取的格式是否满足条件
+     * @return
+     */
+
     @NonNull
     private Predicate<Object> assetPredicate(){
         return asset -> {
@@ -419,18 +454,40 @@ public class AdminServiceImpl implements AdminService {
             String contentType = aAssetMap.getOrDefault("content_type", "").toString();
 
             Object name = aAssetMap.getOrDefault("name", "");
+            /**
+             * 要求获取的系统版本的名称要满足HALO_ADMIN_VERSION_REGEX模式
+             * 获取的格式为application/zip格式
+             */
+            //equalsIgnoreCase：字符串比较，忽略大小写
             return name.toString().matches(HALO_ADMIN_VERSION_REGEX) && "application/zip".equalsIgnoreCase(contentType);
         };
     }
 
+    /**
+     * 将当前使用的代码作为备份代码，拷贝到备份文件中
+     * @param sourcePath
+     * @param backupPath
+     * @throws IOException
+     */
     private void backupAndClearAdminAssetsIfPresent(@NonNull Path sourcePath, @NonNull Path backupPath) throws IOException{
         if (!FileUtils.isEmpty(sourcePath)){
+
+            //备份目录
             Path adminPathBackup = Paths.get(haloProperties.getWorkDir(), HALO_ADMIN_RELATIVE_BACKUP_PATH);
 
+            /**
+             * 删除备份文件
+             */
             FileUtils.deleteFolder(backupPath);
 
+            /**
+             * 将当前使用的系统代码复制到备份目录下
+             */
             FileUtils.copyFolder(sourcePath, backupPath);
 
+            /**
+             * 删除当前使用的系统代码
+             */
             FileUtils.deleteFolder(sourcePath);
         }else {
             FileUtils.createIfAbsent(sourcePath);

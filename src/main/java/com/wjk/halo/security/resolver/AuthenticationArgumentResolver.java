@@ -16,6 +16,10 @@ import org.springframework.web.method.support.ModelAndViewContainer;
 import java.util.Optional;
 
 /**
+ * 权限验证参数解析器
+ */
+
+/**
  * 1. @RequestBody注解，可以把请求里的参数，自动映射到方法里的参数
  * 2. 如果方法里的参数，不只是请求里的参数，还有cookie里的数据，消息头的数据
  * 3. 并且希望Controller的接口仍然接受一个参数对象，参数已经组装好了
@@ -30,8 +34,13 @@ public class AuthenticationArgumentResolver implements HandlerMethodArgumentReso
         log.debug("Initializing AuthenticationArgumentResolver");
     }
 
-    //条件，当返回值为true时，才调用resolveArgument()方法
-    //A.isAssignableFrom(B)，判断A是不是B的父类或者接口或者二者相同
+    /**
+     * 条件，当返回值为true时，才调用resolveArgument()方法
+     * 如果返回false，则不使用该参数解析器进行解析
+     * A.isAssignableFrom(B)，判断A是不是B的父类或者接口或者二者相同
+     * @param parameter
+     * @return
+     */
     @Override
     public boolean supportsParameter(MethodParameter parameter) {
         //判断传进来的参数是不是Authentication、UserDetail、User的子类，如果是，再进行解析

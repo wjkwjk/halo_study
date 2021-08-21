@@ -7,6 +7,9 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Comparator;
 import java.util.List;
 
+/**
+ * 树，用树结构来存储文件/文件夹
+ */
 @Data
 @ToString
 public class StaticFile implements Comparator<StaticFile> {

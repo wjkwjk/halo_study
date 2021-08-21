@@ -7,7 +7,7 @@ import java.util.Optional;
 
 public class HaloConst {
     /**
-     * User home directory.
+     * User home directory.用户根目录
      */
     public final static String USER_HOME = System.getProperties().getProperty("user.home");
 
@@ -48,7 +48,7 @@ public class HaloConst {
     public static final String DEFAULT_ERROR_PATH = "common/error/error";
 
     /**
-     * Path separator.
+     * Path separator.目录的分割符
      */
     public static final String FILE_SEPARATOR = File.separator;
     /**

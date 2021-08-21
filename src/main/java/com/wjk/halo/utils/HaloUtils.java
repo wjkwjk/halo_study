@@ -78,6 +78,9 @@ public class HaloUtils {
         return content.replaceAll(RE_HTML_MARK, StringUtils.EMPTY);
     }
 
+    /**
+     * 给字符串加后缀，若字符串已经有了该后缀，则删除掉该后缀再加一个一样的
+     */
     @NonNull
     public static String ensureSuffix(@NonNull String string, @NonNull String suffix){
         return StringUtils.removeEnd(string, suffix) + suffix;
@@ -110,16 +113,28 @@ public class HaloUtils {
         return pathname.replace(FILE_SEPARATOR, "/");
     }
 
+    /**
+     * 往字符串string两端都加上字符串bothfix
+     *  分别加前缀和后缀
+     * @return
+     */
     @NonNull
     public static String ensureBoth(@NonNull String string, @NonNull String bothfix){
         return ensureBoth(string, bothfix, bothfix);
     }
 
+    /**
+     * 往字符串两端加前后缀
+     *  先加前缀，再加后缀
+     */
     @NonNull
     public static String ensureBoth(@NonNull String string, @NonNull String prefix, @NonNull String suffix){
         return ensureSuffix(ensurePrefix(string, prefix), suffix);
     }
 
+    /**
+     * 给字符串加前缀，若字符串已经有了该前缀，则删除掉该前缀再加一个一样的
+     */
     @NonNull
     public static String ensurePrefix(@NonNull String string, @NonNull String prefix){
         return prefix + StringUtils.removeStart(string, prefix);

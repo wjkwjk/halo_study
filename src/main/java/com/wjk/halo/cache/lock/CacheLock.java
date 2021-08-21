@@ -5,6 +5,11 @@ import org.springframework.core.annotation.AliasFor;
 import java.lang.annotation.*;
 import java.util.concurrent.TimeUnit;
 
+
+/**
+ * 缓存锁
+ */
+
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented

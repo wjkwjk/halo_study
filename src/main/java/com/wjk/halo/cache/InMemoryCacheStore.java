@@ -18,8 +18,21 @@ public class InMemoryCacheStore extends AbstractStringCacheStore{
 
     private final Lock lock = new ReentrantLock();
 
+    /**
+     * scheduleAtFixedRate(TimerTask task, long delay, long period)：定时执行任务
+     *  task : 定时执行的任务
+     *  delay : 延迟多少时间后，开始定时执行任务
+     *  period : 两次任务执行之间的最小事时间间隔
+     *
+     *
+     * Timer是一种定时器工具，用来在一个后台线程计划执行指定任务。它可以计划执行一个任务一次或反复多次。
+     * TimerTask一个抽象类，它的子类代表一个可以被Timer计划的任务。
+     */
     public InMemoryCacheStore(){
         timer = new Timer();
+        /**
+         * 每隔60s删除那些过期的键
+         */
         timer.scheduleAtFixedRate(new CacheExpiryCleaner(), 0, PERIOD);
     }
 
@@ -73,6 +86,10 @@ public class InMemoryCacheStore extends AbstractStringCacheStore{
         log.debug("Removed key:[{}]", key);
     }
 
+    /**
+     * 需要定时执行的任务
+     * 定时删除那些已经过期的键
+     */
     private class CacheExpiryCleaner extends TimerTask {
 
         @Override
