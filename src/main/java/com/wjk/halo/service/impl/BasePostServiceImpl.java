@@ -2,6 +2,7 @@ package com.wjk.halo.service.impl;
 
 import com.wjk.halo.exception.AlreadyExistsException;
 import com.wjk.halo.exception.BadRequestException;
+import com.wjk.halo.exception.NotFoundException;
 import com.wjk.halo.exception.ServiceException;
 import com.wjk.halo.model.dto.post.BasePostMinimalDTO;
 import com.wjk.halo.model.dto.post.BasePostSimpleDTO;
@@ -34,6 +35,8 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import static org.springframework.data.domain.Sort.Direction.DESC;
 
 @Slf4j
 public abstract class BasePostServiceImpl<POST extends BasePost> extends AbstractCrudService<POST, Integer> implements BasePostService<POST> {
@@ -233,6 +236,75 @@ public abstract class BasePostServiceImpl<POST extends BasePost> extends Abstrac
             throw new BadRequestException("Failed to increase visits " + visits + " for post with id " + postId);
         }
 
+    }
+
+    @Override
+    public POST getBy(PostStatus status, String slug) {
+        Optional<POST> postOptional = basePostRepository.getBySlugAndStatus(slug, status);
+
+        return postOptional.orElseThrow(() -> new NotFoundException("查询不到该文章的信息").setErrorData(slug));
+    }
+
+    @Override
+    public Optional<POST> getPrevPost(POST post) {
+        List<POST> posts = listPrevPosts(post, 1);
+
+        return CollectionUtils.isEmpty(posts) ? Optional.empty() : Optional.of(posts.get(0));
+    }
+
+    @Override
+    public List<POST> listPrevPosts(POST post, int size) {
+        String indexSort = optionService.getByPropertyOfNonNull(PostProperties.INDEX_SORT).toString();
+
+        PageRequest pageRequest = PageRequest.of(0, size, Sort.by(Sort.Direction.ASC, indexSort));
+
+        switch (indexSort){
+            case "createTime":
+                return basePostRepository.findAllByStatusAndCreateTimeAfter(PostStatus.PUBLISHED, post.getCreateTime(), pageRequest).getContent();
+            case "editTime":
+                return basePostRepository.findAllByStatusAndEditTimeAfter(PostStatus.PUBLISHED, post.getEditTime(), pageRequest).getContent();
+            case "visits":
+                return basePostRepository.findAllByStatusAndVisitsAfter(PostStatus.PUBLISHED, post.getVisits(), pageRequest).getContent();
+            default:
+                return Collections.emptyList();
+        }
+    }
+
+    @Override
+    public Optional<POST> getNextPost(POST post) {
+        List<POST> posts = listNextPosts(post, 1);
+
+        return CollectionUtils.isEmpty(posts) ? Optional.empty() : Optional.of(posts.get(0));
+    }
+
+    @Override
+    public List<POST> listNextPosts(POST post, int size) {
+        String indexSort = optionService.getByPropertyOfNonNull(PostProperties.INDEX_SORT).toString();
+
+        PageRequest pageRequest = PageRequest.of(0, size, Sort.by(DESC, indexSort));
+
+        switch (indexSort) {
+            case "createTime":
+                return basePostRepository.findAllByStatusAndCreateTimeBefore(PostStatus.PUBLISHED, post.getCreateTime(), pageRequest).getContent();
+            case "editTime":
+                return basePostRepository.findAllByStatusAndEditTimeBefore(PostStatus.PUBLISHED, post.getEditTime(), pageRequest).getContent();
+            case "visits":
+                return basePostRepository.findAllByStatusAndVisitsBefore(PostStatus.PUBLISHED, post.getVisits(), pageRequest).getContent();
+            default:
+                return Collections.emptyList();
+        }
+    }
+
+    @Override
+    public String generateDescription(String content) {
+        String text = HaloUtils.cleanHtmlTag(content);
+
+        Matcher matcher = summaryPattern.matcher(text);
+        text = matcher.replaceAll("");
+
+        Integer summaryLength = optionService.getByPropertyOrDefault(PostProperties.SUMMARY_LENGTH, Integer.class, 150);
+
+        return StringUtils.substring(text, 0, summaryLength);
     }
 
 

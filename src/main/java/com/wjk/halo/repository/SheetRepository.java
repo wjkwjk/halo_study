@@ -18,4 +18,8 @@ public interface SheetRepository extends BasePostRepository<Sheet> {
     @Query("select sum(p.likes) from Sheet p")
     Long countLike();
 
+    @NonNull
+    @Override
+    Optional<Sheet> getBySlugAndStatus(@NonNull String slug, @NonNull PostStatus status);
+
 }

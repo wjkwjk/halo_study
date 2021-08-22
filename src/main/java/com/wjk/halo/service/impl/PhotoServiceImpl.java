@@ -2,6 +2,8 @@ package com.wjk.halo.service.impl;
 
 import com.wjk.halo.model.dto.PhotoDTO;
 import com.wjk.halo.model.entity.Photo;
+import com.wjk.halo.model.entity.Post;
+import com.wjk.halo.model.enums.PostStatus;
 import com.wjk.halo.model.params.PhotoParam;
 import com.wjk.halo.model.params.PhotoQuery;
 import com.wjk.halo.repository.PhotoRepository;
@@ -73,5 +75,6 @@ public class PhotoServiceImpl extends AbstractCrudService<Photo, Integer> implem
             return query.where(predicates.toArray(new Predicate[0])).getRestriction();
         };
     }
+
 
 }

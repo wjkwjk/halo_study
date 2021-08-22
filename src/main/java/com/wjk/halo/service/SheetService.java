@@ -3,6 +3,7 @@ package com.wjk.halo.service;
 import com.wjk.halo.model.dto.IndependentSheetDTO;
 import com.wjk.halo.model.entity.Sheet;
 import com.wjk.halo.model.entity.SheetMeta;
+import com.wjk.halo.model.enums.PostStatus;
 import com.wjk.halo.model.vo.SheetDetailVO;
 import com.wjk.halo.model.vo.SheetListVO;
 import com.wjk.halo.service.base.BasePostService;
@@ -30,5 +31,6 @@ public interface SheetService extends BasePostService<Sheet> {
 
     Sheet updateBy(@NonNull Sheet sheet, Set<SheetMeta> metas, boolean autoSave);
 
-
+    @Override
+    Sheet getBy(PostStatus status, String slug);
 }

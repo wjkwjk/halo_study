@@ -432,6 +432,16 @@ public class OptionServiceImpl extends AbstractCrudService<Option, Integer> impl
         return getByProperty(SeoProperties.DESCRIPTION).orElse("").toString();
     }
 
+    @Override
+    public int getPostPageSize() {
+        try {
+            return getByPropertyOrDefault(PostProperties.INDEX_PAGE_SIZE, Integer.class, DEFAULT_POST_PAGE_SIZE);
+        }catch (NumberFormatException e){
+            log.error(PostProperties.INDEX_PAGE_SIZE.getValue() + " option is not a number format", e);
+            return DEFAULT_POST_PAGE_SIZE;
+        }
+    }
+
     @NonNull
     private Specification<Option> buildSpecByQuery(@NonNull OptionQuery optionQuery){
         return (Specification<Option>) (root, query, criteriaBuilder) ->{

@@ -51,6 +51,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipInputStream;
 
+import static com.wjk.halo.model.support.HaloConst.DEFAULT_ERROR_PATH;
 import static com.wjk.halo.model.support.HaloConst.DEFAULT_THEME_ID;
 
 @Slf4j
@@ -649,6 +650,13 @@ public class ThemeServiceImpl implements ThemeService {
         ThemeProperty activatedTheme = getActivatedTheme();
         // Build render url
         return String.format(RENDER_TEMPLATE_SUFFIX, activatedTheme.getFolderName(), pageName);
+    }
+
+    @Override
+    public String render(String pageName) {
+        return fetchActivatedTheme()
+                .map(themeProperty -> String.format(RENDER_TEMPLATE, themeProperty.getFolderName(), pageName))
+                .orElse(DEFAULT_ERROR_PATH);
     }
 
     @NonNull

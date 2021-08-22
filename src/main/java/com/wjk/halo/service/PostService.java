@@ -2,6 +2,7 @@ package com.wjk.halo.service;
 
 import com.wjk.halo.model.entity.Post;
 import com.wjk.halo.model.entity.PostMeta;
+import com.wjk.halo.model.enums.PostStatus;
 import com.wjk.halo.model.params.PostQuery;
 import com.wjk.halo.model.vo.PostDetailVO;
 import com.wjk.halo.model.vo.PostListVO;
@@ -9,8 +10,10 @@ import com.wjk.halo.service.base.BasePostService;
 import javafx.geometry.Pos;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.lang.NonNull;
 
+import javax.validation.constraints.NotNull;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -44,4 +47,14 @@ public interface PostService extends BasePostService<Post> {
 
     @NonNull
     List<Post> removeByIds(@NonNull Collection<Integer> ids);
+
+    @NonNull
+    @Override
+    Post getBy(@NonNull PostStatus status, @NonNull String slug);
+
+    void publishVisitEvent(@NonNull Integer postId);
+
+    @NotNull
+    Sort getPostDefaultSort();
+
 }

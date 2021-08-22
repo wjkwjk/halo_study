@@ -1,5 +1,7 @@
 package com.wjk.halo.utils;
 
+import cn.hutool.core.util.URLUtil;
+import com.wjk.halo.model.support.HaloConst;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.lang.NonNull;
@@ -11,6 +13,7 @@ import static com.wjk.halo.model.support.HaloConst.FILE_SEPARATOR;
 @Slf4j
 public class HaloUtils {
 
+    public static final String URL_SEPARATOR = "/";
     private static final String RE_HTML_MARK = "(<[^<]*?>)|(<[\\s]*?/[^<]*?>)|(<[^<]*?/[\\s]*?>)";
 
     @NonNull
@@ -138,6 +141,15 @@ public class HaloUtils {
     @NonNull
     public static String ensurePrefix(@NonNull String string, @NonNull String prefix){
         return prefix + StringUtils.removeStart(string, prefix);
+    }
+
+    @NonNull
+    public static String normalizeUrl(@NonNull String originalUrl){
+        if (StringUtils.startsWithAny(originalUrl, URL_SEPARATOR, HaloConst.PROTOCOL_HTTPS, HaloConst.PROTOCOL_HTTP)
+        && !StringUtils.startsWith(originalUrl, "//")){
+            return originalUrl;
+        }
+        return URLUtil.normalize(originalUrl);
     }
 
 }

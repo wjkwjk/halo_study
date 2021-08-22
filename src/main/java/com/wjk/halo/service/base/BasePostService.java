@@ -11,6 +11,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface BasePostService<POST extends BasePost> extends CrudService<POST, Integer>{
 
@@ -60,4 +61,21 @@ public interface BasePostService<POST extends BasePost> extends CrudService<POST
     void increaseVisit(@NonNull Integer postId);
 
     void increaseVisit(long visits, @NonNull Integer postId);
+
+    @NonNull
+    POST getBy(@NonNull PostStatus status, @NonNull String slug);
+
+    @NonNull
+    Optional<POST> getPrevPost(@NonNull POST post);
+
+    @NonNull
+    List<POST> listPrevPosts(@NonNull POST post, int size);
+
+    @NonNull
+    Optional<POST> getNextPost(@NonNull POST post);
+
+    @NonNull
+    List<POST> listNextPosts(@NonNull POST post, int size);
+
+    String generateDescription(@NonNull String content);
 }

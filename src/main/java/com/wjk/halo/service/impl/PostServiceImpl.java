@@ -2,6 +2,7 @@ package com.wjk.halo.service.impl;
 
 import cn.hutool.core.date.DateUtil;
 import com.wjk.halo.event.logger.LogEvent;
+import com.wjk.halo.event.post.PostVisitEvent;
 import com.wjk.halo.model.dto.post.BasePostMinimalDTO;
 import com.wjk.halo.model.dto.post.BasePostSimpleDTO;
 import com.wjk.halo.model.entity.*;
@@ -9,6 +10,7 @@ import com.wjk.halo.model.enums.LogType;
 import com.wjk.halo.model.enums.PostPermalinkType;
 import com.wjk.halo.model.enums.PostStatus;
 import com.wjk.halo.model.params.PostQuery;
+import com.wjk.halo.model.properties.PostProperties;
 import com.wjk.halo.model.vo.PostDetailVO;
 import com.wjk.halo.model.vo.PostListVO;
 import com.wjk.halo.repository.PostRepository;
@@ -22,6 +24,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
@@ -32,6 +35,7 @@ import org.springframework.util.CollectionUtils;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Subquery;
+import javax.validation.constraints.NotNull;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -436,6 +440,23 @@ public class PostServiceImpl extends BasePostServiceImpl<Post> implements PostSe
         basePostMinimalDTO.setFullPath(buildFullPath(post));
 
         return basePostMinimalDTO;
+    }
+
+    @Override
+    public Post getBy(PostStatus status, String slug) {
+        return super.getBy(status, slug);
+    }
+
+    @Override
+    public void publishVisitEvent(Integer postId) {
+        eventPublisher.publishEvent(new PostVisitEvent(this, postId));
+    }
+
+    @Override
+    public @NotNull Sort getPostDefaultSort() {
+        String indexSort = optionService.getByPropertyOfNonNull(PostProperties.INDEX_SORT)
+                .toString();
+        return Sort.by(DESC, "topPriority").and(Sort.by(DESC, indexSort).and(Sort.by(DESC, "id")));
     }
 
     @Override

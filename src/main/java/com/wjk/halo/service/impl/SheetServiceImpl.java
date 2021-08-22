@@ -1,12 +1,14 @@
 package com.wjk.halo.service.impl;
 
 import com.wjk.halo.event.logger.LogEvent;
+import com.wjk.halo.exception.NotFoundException;
 import com.wjk.halo.model.dto.IndependentSheetDTO;
 import com.wjk.halo.model.dto.post.BasePostMinimalDTO;
 import com.wjk.halo.model.entity.Sheet;
 import com.wjk.halo.model.entity.SheetComment;
 import com.wjk.halo.model.entity.SheetMeta;
 import com.wjk.halo.model.enums.LogType;
+import com.wjk.halo.model.enums.PostStatus;
 import com.wjk.halo.model.vo.SheetDetailVO;
 import com.wjk.halo.model.vo.SheetListVO;
 import com.wjk.halo.repository.SheetRepository;
@@ -20,10 +22,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static com.wjk.halo.model.support.HaloConst.URL_SEPARATOR;
 
@@ -190,6 +189,12 @@ public class SheetServiceImpl extends BasePostServiceImpl<Sheet> implements Shee
     @Override
     public Page<Sheet> pageBy(Pageable pageable) {
         return listAll(pageable);
+    }
+
+    @Override
+    public Sheet getBy(PostStatus status, String slug) {
+        Optional<Sheet> postOptional = sheetRepository.getBySlugAndStatus(slug, status);
+        return postOptional.orElseThrow(() -> new NotFoundException("查询不到该页面的信息").setErrorData(slug));
     }
 
     @Override

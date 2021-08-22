@@ -6,7 +6,8 @@ public enum BlogProperties implements PropertyEnum{
     BLOG_LOCATE("blog_locate", String.class, ""),
     BLOG_TITLE("blog_title", String.class, ""),
     BLOG_LOGO("blog_logo", String.class, ""),
-    BLOG_URL("blog_url", String.class, "")
+    BLOG_URL("blog_url", String.class, ""),
+    BLOG_FAVICON("blog_favicon", String.class, ""),
     ;
 
 

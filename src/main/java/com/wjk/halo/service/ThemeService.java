@@ -14,6 +14,8 @@ import java.util.Optional;
 
 public interface ThemeService {
 
+    String RENDER_TEMPLATE = "themes/%s/%s";
+
     String THEMES_CACHE_KEY = "themes";
 
     @Deprecated
@@ -124,4 +126,8 @@ public interface ThemeService {
 
     @NonNull
     String renderWithSuffix(@NonNull String pageName);
+
+    @NonNull
+    String render(@NonNull String pageName);
+
 }
