@@ -33,4 +33,6 @@ public interface SheetService extends BasePostService<Sheet> {
 
     @Override
     Sheet getBy(PostStatus status, String slug);
+
+    void publishVisitEvent(@NonNull Integer sheetId);
 }

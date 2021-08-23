@@ -6,6 +6,7 @@ import jdk.internal.dynalink.linker.LinkerServices;
 import org.springframework.lang.NonNull;
 
 import java.util.List;
+import java.util.Optional;
 
 
 public interface CategoryRepository extends BaseRepository<Category, Integer> {
@@ -16,4 +17,5 @@ public interface CategoryRepository extends BaseRepository<Category, Integer> {
 
     List<Category> findByParentId(@NonNull Integer id);
 
+    Optional<Category> getBySlug(@NonNull String slug);
 }

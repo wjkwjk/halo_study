@@ -22,6 +22,7 @@ public interface FileHandler {
     UploadResult upload(@NonNull MultipartFile file);
 
 
+    //在路径后加 "/"
     @NonNull
     static String normalizeDirectory(@NonNull String dir){
         return StringUtils.appendIfMissing(dir, FILE_SEPARATOR);

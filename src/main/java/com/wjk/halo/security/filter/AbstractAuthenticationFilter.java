@@ -65,6 +65,10 @@ public abstract class AbstractAuthenticationFilter extends OncePerRequestFilter 
         Collections.addAll(this.excludeUrlPatterns, excludeUrlPatterns);
     }
 
+    /**
+     * 验证失败时的处理方法
+     * @param failureHandler
+     */
     public synchronized void setFailureHandler(@NonNull AuthenticationFailureHandler failureHandler){
         this.failureHandler = failureHandler;
     }
@@ -74,7 +78,7 @@ public abstract class AbstractAuthenticationFilter extends OncePerRequestFilter 
         Boolean isInstalled = optionService.getByPropertyOrDefault(PrimaryProperties.IS_INSTALLED, Boolean.class, false);
         //未安装
         if (!isInstalled && !Mode.TEST.equals(haloProperties.getMode())){
-            //将错误写入response
+            //将错误写入response，并且出发错误处理事件
             getFailureHandler().onFailure(request, response, new NotInstallException("当前博客还没有初始化"));
             return;
         }
@@ -92,6 +96,7 @@ public abstract class AbstractAuthenticationFilter extends OncePerRequestFilter 
             //此时需要进行登陆判断
             doAuthenticate(request, response, filterChain);
         }catch (AbstractHaloException e){
+            //触发错误处理事件
             getFailureHandler().onFailure(request, response, e);
         }finally {
             //由于一次性token用于在用户登陆后，防止每次请求到来都需要从内存中取token，导致速度变慢

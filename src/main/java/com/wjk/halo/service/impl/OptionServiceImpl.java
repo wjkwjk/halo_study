@@ -442,6 +442,26 @@ public class OptionServiceImpl extends AbstractCrudService<Option, Integer> impl
         }
     }
 
+    @Override
+    public int getRssPageSize() {
+        try {
+            return getByPropertyOrDefault(PostProperties.RSS_PAGE_SIZE, Integer.class, DEFAULT_RSS_PAGE_SIZE);
+        }catch (NumberFormatException e){
+            log.error(PostProperties.RSS_PAGE_SIZE.getValue() + " setting is not a number format", e);
+            return DEFAULT_RSS_PAGE_SIZE;
+        }
+    }
+
+    @Override
+    public int getArchivesPageSize() {
+        try {
+            return getByPropertyOrDefault(PostProperties.ARCHIVES_PAGE_SIZE, Integer.class, DEFAULT_ARCHIVES_PAGE_SIZE);
+        }catch (NumberFormatException e){
+            log.error(PostProperties.ARCHIVES_PAGE_SIZE.getValue() + " option is not a number format", e);
+            return DEFAULT_POST_PAGE_SIZE;
+        }
+    }
+
     @NonNull
     private Specification<Option> buildSpecByQuery(@NonNull OptionQuery optionQuery){
         return (Specification<Option>) (root, query, criteriaBuilder) ->{

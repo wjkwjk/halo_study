@@ -30,6 +30,10 @@ import java.util.Optional;
 import static com.wjk.halo.model.support.HaloConst.ADMIN_TOKEN_HEADER_NAME;
 import static com.wjk.halo.model.support.HaloConst.ADMIN_TOKEN_QUERY_NAME;
 
+/**
+ * 管理员权限过滤器
+ */
+
 @Slf4j
 @Component
 @Order(1)

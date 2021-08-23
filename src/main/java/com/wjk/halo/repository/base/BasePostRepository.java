@@ -72,4 +72,6 @@ public interface BasePostRepository<POST extends BasePost> extends BaseRepositor
 
     @NonNull
     Page<POST> findAllByStatusAndVisitsBefore(@NonNull PostStatus status, @NonNull Long visits, @NonNull Pageable pageable);
+
+    Optional<POST> getBySlug(@NonNull String slug);
 }

@@ -23,10 +23,17 @@ public class FileHandlers {
     private final ConcurrentHashMap<AttachmentType, FileHandler> fileHandlers = new ConcurrentHashMap<>(16);
 
     public FileHandlers(ApplicationContext applicationContext) {
+        //applicationContext.getBeansOfType(FileHandler.class).values()：返回所有FileHandler类的实例对象（包括子类）
+        //addFileHandlers将 文件服务器产家：文件服务器 保存在map中
         addFileHandlers(applicationContext.getBeansOfType(FileHandler.class).values());
         log.info("Registered {} file handler(s)", fileHandlers.size());
     }
 
+    /**
+     * 将 文件服务器产家：文件服务器 保存在map中
+     * @param fileHandlers
+     * @return
+     */
     @NonNull
     public FileHandlers addFileHandlers(@Nullable Collection<FileHandler> fileHandlers){
         if (!CollectionUtils.isEmpty(fileHandlers)){
@@ -40,12 +47,20 @@ public class FileHandlers {
         return this;
     }
 
+    /**
+     * 删除该附件存储的服务器，然后在服务器删除该文件
+     * @param attachment
+     */
     public void delete(@NonNull Attachment attachment){
         getSupportedType(attachment.getType())
                 .delete(attachment.getFileKey());
     }
 
-    //获取文件的上传类型，默认为提交到本地
+    /**
+     * 获取文件的上传类型，默认为提交到本地
+     * @param type
+     * @return
+     */
     private FileHandler getSupportedType(AttachmentType type){
         FileHandler handler = fileHandlers.getOrDefault(type, fileHandlers.get(AttachmentType.LOCAL));
         if (handler == null){

@@ -58,6 +58,7 @@ public class LocalFileHandler implements FileHandler{
     public LocalFileHandler(OptionService optionService, HaloProperties haloProperties) {
         this.optionService = optionService;
 
+        // 用户根目录/.halo/
         workDir = FileHandler.normalizeDirectory(haloProperties.getWorkDir());
 
         checkWorkDir();
@@ -82,11 +83,17 @@ public class LocalFileHandler implements FileHandler{
         return AttachmentType.LOCAL;
     }
 
+    /**
+     *
+     * @param key 表示文件标识符
+     */
     @Override
     public void delete(String key) {
+        //获得工作目录下的的指定文件
         Path path = Paths.get(workDir, key);
 
         try {
+            //删除该文件
             Files.deleteIfExists(path);
         }catch (IOException e){
             throw new FileOperationException("附件 " + key + " 删除失败", e);

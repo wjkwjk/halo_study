@@ -4,6 +4,7 @@ import com.wjk.halo.model.entity.Post;
 import com.wjk.halo.model.entity.PostMeta;
 import com.wjk.halo.model.enums.PostStatus;
 import com.wjk.halo.model.params.PostQuery;
+import com.wjk.halo.model.vo.ArchiveYearVO;
 import com.wjk.halo.model.vo.PostDetailVO;
 import com.wjk.halo.model.vo.PostListVO;
 import com.wjk.halo.service.base.BasePostService;
@@ -42,6 +43,8 @@ public interface PostService extends BasePostService<Post> {
     @NonNull
     PostDetailVO convertToDetailVo(@NonNull Post post);
 
+    Page<PostDetailVO> convertToDetailVo(@NonNull Page<Post> postPage);
+
     @NonNull
     PostDetailVO updateBy(@NonNull Post postToUpdate, Set<Integer> tagIds, Set<Integer> categoryIds, Set<PostMeta> metas, boolean autoSave);
 
@@ -56,5 +59,16 @@ public interface PostService extends BasePostService<Post> {
 
     @NotNull
     Sort getPostDefaultSort();
+
+    List<ArchiveYearVO> convertToYearArchives(@NonNull List<Post> posts);
+
+    @NonNull
+    Post getBy(@NonNull Integer year, @NonNull String slug);
+
+    @NonNull
+    Post getBy(@NonNull Integer year, @NonNull Integer month, @NonNull String slug);
+
+    @NonNull
+    Post getBy(@NonNull Integer year, @NonNull Integer month, @NonNull Integer day, @NonNull String slug);
 
 }

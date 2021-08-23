@@ -28,4 +28,7 @@ public interface CategoryService extends CrudService<Category, Integer> {
 
     List<Category> listByParentId(@NonNull Integer id);
 
+    @NonNull
+    Category getBySlugOfNonNull(String slug);
+
 }

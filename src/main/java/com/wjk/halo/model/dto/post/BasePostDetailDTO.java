@@ -11,4 +11,8 @@ import lombok.ToString;
 public class BasePostDetailDTO extends BasePostSimpleDTO{
     private Long commentCount;
 
+    private String originalContent;
+
+    private String formatContent;
+
 }

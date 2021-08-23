@@ -307,6 +307,11 @@ public abstract class BasePostServiceImpl<POST extends BasePost> extends Abstrac
         return StringUtils.substring(text, 0, summaryLength);
     }
 
+    @Override
+    public POST getBySlug(String slug) {
+        return basePostRepository.getBySlug(slug).orElseThrow(() -> new NotFoundException("查询不到该文章的信息").setErrorData(slug));
+    }
+
 
     @NonNull
     protected String generateSummary(@NonNull String htmlContent){

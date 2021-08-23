@@ -17,6 +17,12 @@ import org.springframework.lang.NonNull;
 
 import java.lang.annotation.Annotation;
 
+/**
+ * 缓存锁拦截器
+ * 是为了防止多个线程同时访问同一个方法。在缓存中添加要被访问的方法的名称以及参数，当有其他线程也要访问该方法时，会首先查找缓存中是否有该方法对应的
+ * 键，若已有键，则抛出异常。
+ */
+
 @Slf4j
 @Aspect
 @Configuration
@@ -47,13 +53,26 @@ public class CacheLockInterceptor {
 
         log.debug("Starting locking: [{}]", methodSignature.toString());
 
+        /**
+         * 获取CacheLock注解
+         */
         CacheLock cacheLock = methodSignature.getMethod().getAnnotation(CacheLock.class);
 
+        /**
+         * 创建缓存锁的键
+         * "cache_lock_" + 目标方法名 + "/" + 参数1 + "/" + 参数2
+         *      其中的参数都是用 cacheParam注解 修饰的
+         */
         String cacheLockKey = buildCacheLockKey(cacheLock, joinPoint);
 
         log.debug("Built lock key: [{}]", cacheLockKey);
 
         try {
+            /**
+             * 保存到缓存中
+             *  键 ： 创建的缓存锁的键
+             *  值 ： CacheWrapper，内容为 locked
+             */
             Boolean cacheResult = cacheStore.putIfAbsent(cacheLockKey,CACHE_LOCK_VALUE, cacheLock.expired(), cacheLock.timeUnit());
 
             if (cacheResult == null){
@@ -75,20 +94,38 @@ public class CacheLockInterceptor {
 
     }
 
+    /**
+     * 用于创建保存缓存锁的键
+     * 返回    "cache_lock_" + 目标方法名 + "/" + 参数1 + "/" + 参数2
+     * 其中的参数都是用 cacheParam注解 修饰的
+     * @param cacheLock
+     * @param joinPoint
+     * @return
+     */
+
     private String buildCacheLockKey(@NonNull CacheLock cacheLock, @NonNull ProceedingJoinPoint joinPoint){
         MethodSignature methodSignature = (MethodSignature) joinPoint.getSignature();
+        // cache_lock_
         StringBuilder cacheKeyBuilder = new StringBuilder(CACHE_LOCK_PREFOX);
 
+        // ：
         String delimiter = cacheLock.delimiter();
 
+        // "cache_lock_" + 目标方法名
         if (StringUtils.isNotBlank(cacheLock.prefix())){
             cacheKeyBuilder.append(cacheLock.prefix());
         }else {
             cacheKeyBuilder.append(methodSignature.getMethod().toString());
         }
 
+        //获得目标方法每个参数的每个注解
         Annotation[][] parameterAnnotations = methodSignature.getMethod().getParameterAnnotations();
 
+        /**
+         * 遍历每个参数，将用 CacheParam注解 修饰的参数添加到cacheKeyBuilder
+         * 最后cacheKeyBuilder的结果应该为 ： "cache_lock_" + 目标方法名 + "/" + 参数1 + "/" + 参数2
+         *  其中的参数都是用 cacheParam注解 修饰的
+         */
         for (int i=0; i<parameterAnnotations.length; i++){
             log.debug("Parameter annotation[{}] = {}", i, parameterAnnotations[i]);
 

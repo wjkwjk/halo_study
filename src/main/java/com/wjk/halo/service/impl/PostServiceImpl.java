@@ -3,6 +3,7 @@ package com.wjk.halo.service.impl;
 import cn.hutool.core.date.DateUtil;
 import com.wjk.halo.event.logger.LogEvent;
 import com.wjk.halo.event.post.PostVisitEvent;
+import com.wjk.halo.exception.NotFoundException;
 import com.wjk.halo.model.dto.post.BasePostMinimalDTO;
 import com.wjk.halo.model.dto.post.BasePostSimpleDTO;
 import com.wjk.halo.model.entity.*;
@@ -11,6 +12,7 @@ import com.wjk.halo.model.enums.PostPermalinkType;
 import com.wjk.halo.model.enums.PostStatus;
 import com.wjk.halo.model.params.PostQuery;
 import com.wjk.halo.model.properties.PostProperties;
+import com.wjk.halo.model.vo.ArchiveYearVO;
 import com.wjk.halo.model.vo.PostDetailVO;
 import com.wjk.halo.model.vo.PostListVO;
 import com.wjk.halo.repository.PostRepository;
@@ -312,6 +314,11 @@ public class PostServiceImpl extends BasePostServiceImpl<Post> implements PostSe
     }
 
     @Override
+    public Page<PostDetailVO> convertToDetailVo(Page<Post> postPage) {
+        return postPage.map(this::convertToDetailVo);
+    }
+
+    @Override
     @Transactional
     public PostDetailVO updateBy(Post postToUpdate, Set<Integer> tagIds, Set<Integer> categoryIds, Set<PostMeta> metas, boolean autoSave) {
         postToUpdate.setEditTime(DateUtils.now());
@@ -448,6 +455,11 @@ public class PostServiceImpl extends BasePostServiceImpl<Post> implements PostSe
     }
 
     @Override
+    public Post getBySlug(String slug) {
+        return super.getBySlug(slug);
+    }
+
+    @Override
     public void publishVisitEvent(Integer postId) {
         eventPublisher.publishEvent(new PostVisitEvent(this, postId));
     }
@@ -457,6 +469,58 @@ public class PostServiceImpl extends BasePostServiceImpl<Post> implements PostSe
         String indexSort = optionService.getByPropertyOfNonNull(PostProperties.INDEX_SORT)
                 .toString();
         return Sort.by(DESC, "topPriority").and(Sort.by(DESC, indexSort).and(Sort.by(DESC, "id")));
+    }
+
+    @Override
+    public List<ArchiveYearVO> convertToYearArchives(List<Post> posts) {
+        Map<Integer, List<Post>> yearPostMap = new HashMap<>(8);
+
+        posts.forEach(post -> {
+            Calendar calendar = DateUtils.convertTo(post.getCreateTime());
+            yearPostMap.computeIfAbsent(calendar.get(Calendar.YEAR), year -> new LinkedList<>()).add(post);
+        });
+
+        List<ArchiveYearVO> archives = new LinkedList<>();
+
+        yearPostMap.forEach((year, postList) -> {
+            ArchiveYearVO archive = new ArchiveYearVO();
+            archive.setYear(year);
+            archive.setPosts(convertToListVo(postList));
+
+            archives.add(archive);
+        });
+
+        archives.sort(new ArchiveYearVO.ArchiveComparator());
+
+        return archives;
+
+    }
+
+    @NonNull
+    @Override
+    public Post getBy(Integer year, String slug) {
+        Optional<Post> postOptional = postRepository.findBy(year, slug);
+
+        return postOptional
+                .orElseThrow(() -> new NotFoundException("查询不到该文章的信息").setErrorData(slug));
+
+    }
+
+    @Override
+    public Post getBy(Integer year, Integer month, String slug) {
+        Optional<Post> postOptional = postRepository.findBy(year, month, slug);
+
+        return postOptional
+                .orElseThrow(() -> new NotFoundException("查询不到该文章的信息").setErrorData(slug));
+
+    }
+
+    @Override
+    public Post getBy(Integer year, Integer month, Integer day, String slug) {
+        Optional<Post> postOptional = postRepository.findBy(year, month, day, slug);
+
+        return postOptional
+                .orElseThrow(() -> new NotFoundException("查询不到该文章的信息").setErrorData(slug));
     }
 
     @Override

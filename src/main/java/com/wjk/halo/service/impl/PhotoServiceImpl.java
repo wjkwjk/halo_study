@@ -55,6 +55,13 @@ public class PhotoServiceImpl extends AbstractCrudService<Photo, Integer> implem
         return photoRepository.findAllTeams();
     }
 
+    @Override
+    public Page<PhotoDTO> pageBy(Pageable pageable) {
+        Page<Photo> photos = photoRepository.findAll(pageable);
+
+        return photos.map(photo -> new PhotoDTO().convertFrom(photo));
+    }
+
     @NonNull
     private Specification<Photo> buildSpecByQuery(@NonNull PhotoQuery photoQuery){
         return (Specification<Photo>) (root, query, criteriaBuilder) -> {

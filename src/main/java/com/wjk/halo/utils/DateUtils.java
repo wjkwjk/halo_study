@@ -3,6 +3,7 @@ package com.wjk.halo.utils;
 import com.sun.istack.NotNull;
 import org.springframework.lang.NonNull;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
@@ -48,4 +49,12 @@ public class DateUtils {
         }
         return result;
     }
+
+    @NonNull
+    public static Calendar convertTo(@NonNull Date date){
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        return calendar;
+    }
+
 }

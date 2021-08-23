@@ -2,8 +2,12 @@ package com.wjk.halo.service;
 
 import com.wjk.halo.model.dto.CategoryWithPostCountDTO;
 import com.wjk.halo.model.entity.Category;
+import com.wjk.halo.model.entity.Post;
 import com.wjk.halo.model.entity.PostCategory;
+import com.wjk.halo.model.enums.PostStatus;
 import com.wjk.halo.service.base.CrudService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.lang.NonNull;
 import org.springframework.lang.Nullable;
@@ -35,5 +39,9 @@ public interface PostCategoryService extends CrudService<PostCategory, Integer> 
 
     @NonNull
     List<Category> listCategoriesBy(@NonNull Integer postId);
+
+    @NonNull
+    Page<Post> pagePostBy(@NonNull Integer categoryId, @NonNull PostStatus status, Pageable pageable);
+
 
 }

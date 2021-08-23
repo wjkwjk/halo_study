@@ -1,15 +1,20 @@
 package com.wjk.halo.service.impl;
 
 import com.wjk.halo.model.dto.TagWithPostCountDTO;
+import com.wjk.halo.model.entity.Post;
 import com.wjk.halo.model.entity.PostTag;
 import com.wjk.halo.model.entity.Tag;
+import com.wjk.halo.model.enums.PostStatus;
 import com.wjk.halo.model.projection.TagPostPostCountProjection;
+import com.wjk.halo.repository.PostRepository;
 import com.wjk.halo.repository.PostTagRepository;
 import com.wjk.halo.repository.TagRepository;
 import com.wjk.halo.service.OptionService;
 import com.wjk.halo.service.PostTagService;
 import com.wjk.halo.service.base.AbstractCrudService;
 import com.wjk.halo.utils.ServiceUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -24,15 +29,19 @@ public class PostTagServiceImpl extends AbstractCrudService<PostTag, Integer> im
 
     private PostTagRepository postTagRepository;
 
+    private PostRepository postRepository;
+
     private final TagRepository tagRepository;
 
     private final OptionService optionService;
 
     protected PostTagServiceImpl(PostTagRepository postTagRepository,
+                                 PostRepository postRepository,
                                  TagRepository tagRepository,
                                  OptionService optionService) {
         super(postTagRepository);
         this.postTagRepository = postTagRepository;
+        this.postRepository = postRepository;
         this.tagRepository = tagRepository;
         this.optionService = optionService;
     }
@@ -142,5 +151,12 @@ public class PostTagServiceImpl extends AbstractCrudService<PostTag, Integer> im
 
                 }
         ).collect(Collectors.toList());
+    }
+
+    @Override
+    public Page<Post> pagePostsBy(Integer tagId, PostStatus status, Pageable pageable) {
+        Set<Integer> postIds = postTagRepository.findAllPostIdsByTagId(tagId, status);
+
+        return postRepository.findAllByIdIn(postIds, pageable);
     }
 }

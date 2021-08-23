@@ -1,6 +1,7 @@
 package com.wjk.halo.service.impl;
 
 import com.wjk.halo.exception.AlreadyExistsException;
+import com.wjk.halo.exception.NotFoundException;
 import com.wjk.halo.model.dto.TagDTO;
 import com.wjk.halo.model.entity.Tag;
 import com.wjk.halo.repository.TagRepository;
@@ -58,6 +59,12 @@ public class TagServiceImpl extends AbstractCrudService<Tag, Integer> implements
         return tags.stream()
                 .map(this::convertTo)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Tag getBySlugOfNonNull(String slug) {
+        return tagRepository.getBySlug(slug).orElseThrow(() -> new NotFoundException("查询不到该标签的信息").setErrorData(slug));
+
     }
 
     @Override

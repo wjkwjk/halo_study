@@ -16,4 +16,6 @@ public interface TagService extends CrudService<Tag, Integer> {
     @NonNull
     List<TagDTO> convertTo(@Nullable List<Tag> tags);
 
+    @NonNull
+    Tag getBySlugOfNonNull(@NonNull String slug);
 }

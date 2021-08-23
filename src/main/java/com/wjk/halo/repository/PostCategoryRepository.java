@@ -1,6 +1,7 @@
 package com.wjk.halo.repository;
 
 import com.wjk.halo.model.entity.PostCategory;
+import com.wjk.halo.model.enums.PostStatus;
 import com.wjk.halo.model.projection.CategoryPostCountProjection;
 import com.wjk.halo.repository.base.BaseRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -31,5 +32,9 @@ public interface PostCategoryRepository extends BaseRepository<PostCategory, Int
     @NonNull
     @Query("select postCategory.categoryId from PostCategory postCategory where postCategory.postId = ?1")
     Set<Integer> findAllCategoryIdsByPostId(@NonNull Integer postId);
+
+    @NonNull
+    @Query("select postCategory.postId from PostCategory postCategory, Post post where postCategory.categoryId = ?1 and post.id = postCategory.postId and post.status = ?2")
+    Set<Integer> findAllPostIdsByCategoryId(@NonNull Integer categoryId, @NonNull PostStatus status);
 
 }

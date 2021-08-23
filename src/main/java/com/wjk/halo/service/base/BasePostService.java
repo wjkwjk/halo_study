@@ -78,4 +78,7 @@ public interface BasePostService<POST extends BasePost> extends CrudService<POST
     List<POST> listNextPosts(@NonNull POST post, int size);
 
     String generateDescription(@NonNull String content);
+
+    @NonNull
+    POST getBySlug(@NonNull String slug);
 }

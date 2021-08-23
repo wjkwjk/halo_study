@@ -135,6 +135,11 @@ public class CategoryServiceImpl extends AbstractCrudService<Category, Integer> 
         return categoryRepository.findByParentId(id);
     }
 
+    @Override
+    public Category getBySlugOfNonNull(String slug) {
+        return categoryRepository.getBySlug(slug).orElseThrow(() -> new NotFoundException("查询不到该分类的信息").setErrorData(slug));
+    }
+
     @NonNull
     private CategoryVO createTopLevelCategory(){
         CategoryVO topCategory = new CategoryVO();

@@ -24,4 +24,6 @@ public interface PhotoService extends CrudService<Photo, Integer> {
 
     List<String> listAllTeams();
 
+    Page<PhotoDTO> pageBy(@NonNull Pageable pageable);
+
 }

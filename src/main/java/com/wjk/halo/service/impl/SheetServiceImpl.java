@@ -1,6 +1,7 @@
 package com.wjk.halo.service.impl;
 
 import com.wjk.halo.event.logger.LogEvent;
+import com.wjk.halo.event.post.SheetVisitEvent;
 import com.wjk.halo.exception.NotFoundException;
 import com.wjk.halo.model.dto.IndependentSheetDTO;
 import com.wjk.halo.model.dto.post.BasePostMinimalDTO;
@@ -195,6 +196,17 @@ public class SheetServiceImpl extends BasePostServiceImpl<Sheet> implements Shee
     public Sheet getBy(PostStatus status, String slug) {
         Optional<Sheet> postOptional = sheetRepository.getBySlugAndStatus(slug, status);
         return postOptional.orElseThrow(() -> new NotFoundException("查询不到该页面的信息").setErrorData(slug));
+    }
+
+    @Override
+    public void publishVisitEvent(Integer sheetId) {
+        eventPublisher.publishEvent(new SheetVisitEvent(this, sheetId));
+
+    }
+
+    @Override
+    public Sheet getBySlug(String slug) {
+        return sheetRepository.getBySlug(slug).orElseThrow(() -> new NotFoundException("查询不到该页面的信息").setErrorData(slug));
     }
 
     @Override

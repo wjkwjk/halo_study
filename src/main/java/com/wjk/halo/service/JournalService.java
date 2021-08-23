@@ -3,6 +3,7 @@ package com.wjk.halo.service;
 import com.wjk.halo.model.dto.JournalDTO;
 import com.wjk.halo.model.dto.JournalWithCmtCountDTO;
 import com.wjk.halo.model.entity.Journal;
+import com.wjk.halo.model.enums.JournalType;
 import com.wjk.halo.model.params.JournalParam;
 import com.wjk.halo.model.params.JournalQuery;
 import com.wjk.halo.service.base.CrudService;
@@ -15,6 +16,10 @@ import org.springframework.lang.Nullable;
 import java.util.List;
 
 public interface JournalService extends CrudService<Journal, Integer> {
+
+    @NonNull
+    Page<Journal> pageBy(@NonNull JournalType type, @NonNull Pageable pageable);
+
 
     @NonNull
     Page<Journal> pageBy(@NonNull JournalQuery journalQuery, @NonNull Pageable pageable);

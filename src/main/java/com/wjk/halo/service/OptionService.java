@@ -26,6 +26,10 @@ public interface OptionService extends CrudService<Option, Integer> {
 
     int DEFAULT_COMMENT_PAGE_SIZE = 10;
 
+    int DEFAULT_RSS_PAGE_SIZE = 20;
+
+    int DEFAULT_ARCHIVES_PAGE_SIZE = 10;
+
     String OPTIONS_KEY = "options";
 
     /**
@@ -133,5 +137,10 @@ public interface OptionService extends CrudService<Option, Integer> {
     String getSeoDescription();
 
     int getPostPageSize();
+
+    int getRssPageSize();
+
+    int getArchivesPageSize();
+
 
 }

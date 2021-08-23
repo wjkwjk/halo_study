@@ -2,15 +2,20 @@ package com.wjk.halo.service.impl;
 
 import com.wjk.halo.model.dto.CategoryWithPostCountDTO;
 import com.wjk.halo.model.entity.Category;
+import com.wjk.halo.model.entity.Post;
 import com.wjk.halo.model.entity.PostCategory;
+import com.wjk.halo.model.enums.PostStatus;
 import com.wjk.halo.model.projection.CategoryPostCountProjection;
 import com.wjk.halo.repository.CategoryRepository;
 import com.wjk.halo.repository.PostCategoryRepository;
+import com.wjk.halo.repository.PostRepository;
 import com.wjk.halo.repository.base.BaseRepository;
 import com.wjk.halo.service.OptionService;
 import com.wjk.halo.service.PostCategoryService;
 import com.wjk.halo.service.base.AbstractCrudService;
 import com.wjk.halo.utils.ServiceUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -25,15 +30,19 @@ public class PostCategoryServiceImpl extends AbstractCrudService<PostCategory, I
 
     private final PostCategoryRepository postCategoryRepository;
 
+    private PostRepository postRepository;
+
     private final CategoryRepository categoryRepository;
 
     private final OptionService optionService;
 
     public PostCategoryServiceImpl(PostCategoryRepository postCategoryRepository,
+                                   PostRepository postRepository,
                                    CategoryRepository categoryRepository,
                                    OptionService optionService) {
         super(postCategoryRepository);
         this.postCategoryRepository = postCategoryRepository;
+        this.postRepository = postRepository;
         this.categoryRepository = categoryRepository;
         this.optionService = optionService;
     }
@@ -150,5 +159,11 @@ public class PostCategoryServiceImpl extends AbstractCrudService<PostCategory, I
     public List<Category> listCategoriesBy(Integer postId) {
         Set<Integer> categoryIds = postCategoryRepository.findAllCategoryIdsByPostId(postId);
         return categoryRepository.findAllById(categoryIds);
+    }
+
+    @Override
+    public Page<Post> pagePostBy(Integer categoryId, PostStatus status, Pageable pageable) {
+        Set<Integer> postIds = postCategoryRepository.findAllPostIdsByCategoryId(categoryId, status);
+        return postRepository.findAllByIdIn(postIds, pageable);
     }
 }

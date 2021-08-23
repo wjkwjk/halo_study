@@ -9,6 +9,7 @@ import com.wjk.halo.model.entity.Tag;
 import com.wjk.halo.model.enums.PostEditorType;
 import com.wjk.halo.model.enums.PostStatus;
 import com.wjk.halo.model.support.HaloConst;
+import com.wjk.halo.model.vo.ArchiveYearVO;
 import com.wjk.halo.model.vo.PostListVO;
 import com.wjk.halo.service.*;
 import com.wjk.halo.utils.MarkdownUtils;
@@ -16,6 +17,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 import org.springframework.ui.Model;
 
@@ -134,6 +136,25 @@ public class PostModel {
         model.addAttribute("meta_keywords", optionService.getSeoKeywords());
         model.addAttribute("meta_description", optionService.getSeoDescription());
         return themeService.render("index");
+    }
+
+    public String archives(Integer page, Model model){
+        int pageSize = optionService.getArchivesPageSize();
+        Pageable pageable = PageRequest.of(page >= 1 ? page - 1 : page, pageSize, Sort.by(Sort.Direction.DESC, "createTime"));
+
+
+        Page<Post> postPage = postService.pageBy(PostStatus.PUBLISHED, pageable);
+
+        Page<PostListVO> posts = postService.convertToListVo(postPage);
+
+        List<ArchiveYearVO> archives = postService.convertToYearArchives(postPage.getContent());
+
+        model.addAttribute("is_archives", true);
+        model.addAttribute("posts", posts);
+        model.addAttribute("archives", archives);
+        model.addAttribute("meta_keywords", optionService.getSeoKeywords());
+        model.addAttribute("meta_description", optionService.getSeoDescription());
+        return themeService.render("archives");
     }
 
 }

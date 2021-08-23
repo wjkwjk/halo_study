@@ -13,6 +13,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+/**
+ * OncePerRequestFilter 确保一次请求只通过一次filter，而不重复执行
+ * 日志过滤器，用于记录请求的ip等信息
+ */
+
 @Slf4j
 @Component
 @Order(Ordered.HIGHEST_PRECEDENCE + 9)

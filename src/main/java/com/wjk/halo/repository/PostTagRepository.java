@@ -1,6 +1,7 @@
 package com.wjk.halo.repository;
 
 import com.wjk.halo.model.entity.PostTag;
+import com.wjk.halo.model.enums.PostStatus;
 import com.wjk.halo.model.projection.TagPostPostCountProjection;
 import com.wjk.halo.repository.base.BaseRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -31,4 +32,14 @@ public interface PostTagRepository extends BaseRepository<PostTag, Integer> {
     @Query("select new com.wjk.halo.model.projection.TagPostPostCountProjection(count(pt.postId), pt.tagId) from PostTag pt group by pt.tagId")
     @NonNull
     List<TagPostPostCountProjection> findPostCount();
+
+    @Query("select postTag.postId from PostTag postTag where postTag.tagId = ?1")
+    @NonNull
+    Set<Integer> findAllPostIdsByTagId(@NonNull Integer tagId);
+
+    @Query("select postTag.postId from PostTag postTag,Post post where postTag.tagId = ?1 and post.id = postTag.postId and post.status = ?2")
+    @NonNull
+    Set<Integer> findAllPostIdsByTagId(@NonNull Integer tagId, @NonNull PostStatus status);
+
+
 }
