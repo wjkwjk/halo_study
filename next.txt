@@ -5,25 +5,16 @@
 
 以下是业务处理的预处理步骤以及后处理步骤，接下来需要判断发生的前后事件，用图画出来流程
 
-如果有 DisableOnCondition注解，则使用该注解的环绕通知
-如果有 SensitiveConceal注解，则使用该注解的环绕通知
-如果有 CacheLock注解，则使用该注解的环绕通知
-
-向前端返回信息时，使用 CommonResultControllerAdvice 修改返回内容
-当出现异常时，使用 ControllerExceptionHandler 捕获异常，修改返回内容
-
-请求发送到controller接口前以及controller接口结束后，使用 ControllerLogApp 记录日志
-
-请求到来时，使用 CorsFilter 进行跨域过滤器
-请求到来时，使用 LogFilter 进行日志记录
-请求到来时，使用 AdminAuthenticationFilter/ApiAuthenticationFilter 进行身份权限过滤器
-
-请求到来时，使用 HaloRequestMappingHandler 进行路径分发，同时屏蔽一些静态资源的的访问
-
 使用WebMvcAutoConfiguraion配置
-
 
 CrosFilter(解决跨域问题)
 LogFilter(日志记录，在filterChain.doFilter前后记录日志)
 AdminAuthenticationFilter/ApiAuthenticationFilter(身份权限过滤器)
 HaloRequestMappingHandlerMapping(请求路径分发，同时屏蔽一些静态资源的的访问)
+DisableOnCondition注解（在不同的生产环境中，阻止某些接口的使用）
+SensitiveConceal注解（屏蔽敏感信息）
+CacheLock注解（防止有多个线程同时访问一个接口）
+
+CommonResultControllerAdvice（向前端返回信息时，修改返回内容）
+ControllerExceptionHandler（当出现异常时，捕获异常，修改返回内容，使得返回内容和正藏返回时一致）
+ControllerLogApp（请求发送到controller接口前以及controller接口结束后，记录日志）
